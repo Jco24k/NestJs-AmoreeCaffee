@@ -45,7 +45,7 @@ export class CategoriasService {
     })
 
     return categoria.map(({  imagenUrl , ...detailsCateg }) => ({
-      categoria: detailsCateg,
+      ...detailsCateg,
       imagenUrl: (imagenUrl? `${this.configService.get<String>('HOST_API')}/categorias/`+imagenUrl: null )
     }))
   }
