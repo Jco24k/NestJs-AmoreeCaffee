@@ -20,8 +20,8 @@ export class CategoriasService {
     private readonly categoriaRepository: Repository<Categoria>,
     private readonly configService: ConfigService,
 
-  ) {}
-  
+  ) { }
+
   async create(createCategoriaDto: CreateCategoriaDto) {
     try {
       const categoria = this.categoriaRepository.create(createCategoriaDto);
@@ -32,28 +32,35 @@ export class CategoriasService {
     }
   }
 
-  async findAll( paginationDto: PaginationDto ) {
+  async findAll(paginationDto: PaginationDto) {
 
-    const { limit = 10, offset = 0 , orderby = 'id' , sordir = 'asc' } = paginationDto;
+    const { limit = 10, offset = 0, orderby = 'id', sordir = 'asc' } = paginationDto;
     const categoria = await this.categoriaRepository.find({
       take: limit,
       skip: offset,
-      order: JSON.parse( `{"${orderby}": "${sordir}" }`),
+      order: JSON.parse(`{"${orderby}": "${sordir}" }`),
       relations: {
         producto: true,
       }
     })
 
-    return categoria.map(({  imagenUrl , ...detailsCateg }) => ({
+    return categoria.map(({ imagenUrl, ...detailsCateg }) => ({
       ...detailsCateg,
-      imagenUrl: (imagenUrl? `${this.configService.get<String>('HOST_API')}/categorias/`+imagenUrl: null )
+      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/categorias/` + imagenUrl : null)
     }))
   }
 
   async findOne(search: string) {
     let categ: Categoria;
     if (isUUID(search)) {
-      categ = await this.categoriaRepository.findOneBy({ id: search });
+      categ = await this.categoriaRepository.findOne({
+        where: {
+          id: search
+        },
+        relations: {
+          producto: true
+        }
+      });
     } else {
       categ = await this.categoriaRepository.findOne({
         where: {
@@ -62,15 +69,17 @@ export class CategoriasService {
       });
     }
     if (!categ) throw new NotFoundException(`Categoria with id or nombre ${search} not found`);
-    return { ... categ, imagenUrl: (
-      categ.imagenUrl? `${this.configService.get<String>('HOST_API')}/categorias/`+ categ.imagenUrl: null )};
+    return {
+      ...categ, imagenUrl: (
+        categ.imagenUrl ? `${this.configService.get<String>('HOST_API')}/categorias/` + categ.imagenUrl : null)
+    };
   }
 
   async update(id: string, updateCategoriaDto: UpdateCategoriaDto) {
     const categoria = await this.findOne(id);
-    if(updateCategoriaDto.id) updateCategoriaDto.id = id;
+    if (updateCategoriaDto.id) updateCategoriaDto.id = id;
     try {
-      await this.categoriaRepository.update({id},{
+      await this.categoriaRepository.update({ id }, {
         ...updateCategoriaDto
       })
       return { ...categoria, ...updateCategoriaDto };
@@ -81,7 +90,7 @@ export class CategoriasService {
 
   async remove(id: string) {
     const Categoria = await this.findOne(id);
-    await this.categoriaRepository.update({id},{estado:false});
+    await this.categoriaRepository.update({ id }, { estado: false });
     return { message: `Categoria with id ${id} deleted successfully` };
 
   }
