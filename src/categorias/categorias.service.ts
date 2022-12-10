@@ -65,6 +65,9 @@ export class CategoriasService {
       categ = await this.categoriaRepository.findOne({
         where: {
           nombre: search.toLowerCase()
+        },
+        relations:{
+          producto: true
         }
       });
     }
