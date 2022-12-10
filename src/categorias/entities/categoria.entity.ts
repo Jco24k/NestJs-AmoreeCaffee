@@ -26,6 +26,15 @@ export class Categoria {
     )
     producto: Producto;
     
+
+    
+    @Column('text', {
+        default: null,
+        nullable:true
+    })
+    imagenUrl : string
+
+
     @BeforeInsert()
     checkSlugInsert() {
         this.nombre = this.nombre.toLowerCase();

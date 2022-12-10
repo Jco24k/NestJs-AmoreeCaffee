@@ -7,15 +7,19 @@ import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Categoria } from './entities/categoria.entity';
 import { validate as isUUID } from 'uuid';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CategoriasService {
   private readonly logger = new Logger('CategoriasService');
 
+
   constructor(
 
     @InjectRepository(Categoria)
-    private readonly categoriaRepository: Repository<Categoria>
+    private readonly categoriaRepository: Repository<Categoria>,
+    private readonly configService: ConfigService,
+
   ) {}
   
   async create(createCategoriaDto: CreateCategoriaDto) {
@@ -40,7 +44,10 @@ export class CategoriasService {
       }
     })
 
-    return categoria;
+    return categoria.map(({  imagenUrl , ...detailsCateg }) => ({
+      categoria: detailsCateg,
+      imagenUrl: (imagenUrl? `${this.configService.get<String>('HOST_API')}/categorias/`+imagenUrl: null )
+    }))
   }
 
   async findOne(search: string) {
@@ -55,7 +62,8 @@ export class CategoriasService {
       });
     }
     if (!categ) throw new NotFoundException(`Categoria with id or nombre ${search} not found`);
-    return categ;
+    return { ... categ, imagenUrl: (
+      categ.imagenUrl? `${this.configService.get<String>('HOST_API')}/categorias/`+ categ.imagenUrl: null )};
   }
 
   async update(id: string, updateCategoriaDto: UpdateCategoriaDto) {

@@ -11,4 +11,9 @@ export class CreateCategoriaDto {
     @IsBoolean()
     @IsOptional()
     estado?: boolean;
+
+    @IsString()
+    @IsNotEmpty()
+    @IsOptional()
+    imagenUrl ?:string;
 }
