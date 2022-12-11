@@ -44,10 +44,10 @@ export class ProductosService {
       order: JSON.parse(`{"${orderby}": "${sordir}" }`)
     })
 
-    return listPro.map(({ categoria: { nombre, id }, imagenUrl , ...detailsPro }) => ({
+    return listPro.map(({ categoria: { nombre, id }, imagenUrl, ...detailsPro }) => ({
       ...detailsPro,
       categoria: { nombre, id },
-      imagenUrl: (imagenUrl? `${this.configService.get<String>('HOST_API')}/productos/`+imagenUrl: null )
+      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` + imagenUrl : null)
     }))
   }
 
@@ -64,12 +64,14 @@ export class ProductosService {
     }
     if (!producto) throw new NotFoundException(`producto with id or nombre ${search} not found`);
     const { categoria: { nombre, id } } = producto;
-    return { ...producto, categoria: { id, nombre } , imagenUrl: (
-      producto.imagenUrl? `${this.configService.get<String>('HOST_API')}/productos/`+
-      producto.imagenUrl: null ) };
+    return {
+      ...producto, categoria: { id, nombre }, imagenUrl: (
+        producto.imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` +
+          producto.imagenUrl : null)
+    };
   }
 
-  async findAllbyCategoria(search: string, categoria: string) {
+  async findOnebyCategoria(search: string, categoria: string) {
     const pro = await this.productoRepository.findOne({
       where: {
         nombre: search,
@@ -81,9 +83,22 @@ export class ProductosService {
 
     if (!pro) throw new NotFoundException(`producto or categoria not found`);
     return pro;
-
-
   }
+
+  async findAllbyCategoria(categoria: string) {
+    const pro = await this.productoRepository.find({
+      where: {
+        categoria: {
+          nombre: categoria
+        }
+      }
+    });
+
+    if (!pro) throw new NotFoundException(`Categoria not found`);
+    return pro;
+  }
+
+
   async update(id: string, updateProductoDto: UpdateProductoDto) {
     if (updateProductoDto.id) updateProductoDto.id = id;
     let { categoria } = updateProductoDto;

@@ -26,7 +26,7 @@ export class ProductosController {
 
   @Get(':search/:categoria')
   findOnebyCategoria(@Param('search') search: string,@Param('categoria') categoria: string) {
-    return this.productosService.findAllbyCategoria(search,categoria);
+    return this.productosService.findOnebyCategoria(search,categoria);
   }
 
   @Patch(':id')
@@ -37,5 +37,10 @@ export class ProductosController {
   @Delete(':id')
   remove(@Param('id',ParseUUIDPipe) id: string) {
     return this.productosService.remove(id);
+  }
+
+  @Get('/categoria/:categoria')
+  findAllbyCategoria(@Param('categoria') categoria: string) {
+    return this.productosService.findAllbyCategoria(categoria);
   }
 }
