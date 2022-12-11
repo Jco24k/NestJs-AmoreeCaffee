@@ -93,7 +93,11 @@ export class ProductosService {
         }
       }
     });
-    return pro;
+    return pro.map(({ categoria: { nombre, id }, imagenUrl, ...detailsPro }) => ({
+      ...detailsPro,
+      categoria: { nombre, id },
+      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` + imagenUrl : null)
+    }))
   }
 
 
