@@ -39,7 +39,7 @@ export class ProductosController {
     return this.productosService.remove(id);
   }
 
-  @Get('/categoria/:categoria')
+  @Get('/categoria/search/:categoria')
   findAllbyCategoria(@Param('categoria') categoria: string) {
     return this.productosService.findAllbyCategoria(categoria);
   }

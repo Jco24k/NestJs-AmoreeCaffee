@@ -93,8 +93,6 @@ export class ProductosService {
         }
       }
     });
-
-    if (!pro) throw new NotFoundException(`Categoria not found`);
     return pro;
   }
 
