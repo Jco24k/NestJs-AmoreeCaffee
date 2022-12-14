@@ -3,8 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { number } from 'joi';
 import { CabeceraPedidoService } from 'src/cabecera-pedido/cabecera-pedido.service';
 import { UpdateCabeceraPedidoDto } from 'src/cabecera-pedido/dto/update-cabecera-pedido.dto';
+import { Producto } from 'src/productos/entities/producto.entity';
 import { ProductosService } from 'src/productos/productos.service';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
 import { DetallePedido } from './entities/detalle-pedido.entity';
@@ -17,6 +18,8 @@ export class DetallePedidoService {
   constructor(
     @InjectRepository(DetallePedido)
     private readonly detallePedidoRepository: Repository<DetallePedido>,
+    @InjectRepository(Producto)
+    private readonly productoRepository: Repository<Producto>,
     private readonly cabeceraPedidoService: CabeceraPedidoService,
     private readonly productoService: ProductosService
   ) { }
@@ -69,13 +72,24 @@ export class DetallePedidoService {
     return det;
   }
 
+  async findByCabeceraPedido(idcabpedido: string){
+    return await this.detallePedidoRepository.find({
+      where:{
+        cabeceraPedidoId: idcabpedido
+      },
+      relations: {
+        cabeceraPedido: true, producto: true
+      }
+    })
+  }
+
   async update(cabeceraPedidoId: string, productoId: string, updateDetallePedidoDto: UpdateDetallePedidoDto) {
     const { cabeceraPedido, producto, precio, cantidad } = updateDetallePedidoDto;
     const det = await this.findOne(cabeceraPedidoId, productoId);
     updateDetallePedidoDto.cabeceraPedido.id = cabeceraPedidoId;
     updateDetallePedidoDto.producto.id = productoId;
     updateDetallePedidoDto.subtotal =
-      (precio ? precio : det.precio )* (cantidad ? cantidad : det.cantidad);
+      (precio ? precio : det.precio) * (cantidad ? cantidad : det.cantidad);
     try {
       await this.detallePedidoRepository.update({ cabeceraPedidoId, productoId }, {
         ...updateDetallePedidoDto
@@ -100,5 +114,18 @@ export class DetallePedidoService {
 
     this.logger.error(error)
     throw new InternalServerErrorException('Unexpected error, check server logs');
+  }
+
+
+  async createAll(createDetallePedidoDtos: CreateDetallePedidoDto[]) {
+    const listIdPros = createDetallePedidoDtos.map(({ producto }) => producto.id)
+    const listProductos = (await this.productoRepository.find({ where: { id: In(listIdPros) } })).map(x => x.id)
+    const compareList = (a: string[], b: string[]) => a.length === b.length && a.every((x: string, index: number) => x === b[index])
+    if (!compareList(listIdPros, listProductos)) throw new NotFoundException(`DetallePedido with Producto{'id'} [${listIdPros}] not found`);
+    const detallePedidos: DetallePedido[] = [];
+    createDetallePedidoDtos.forEach(detPedido => {
+      detallePedidos.push(this.detallePedidoRepository.create(detPedido))
+    });
+    return await this.detallePedidoRepository.save(detallePedidos)
   }
 }

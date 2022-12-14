@@ -23,6 +23,11 @@ export class DetallePedidoController {
     return this.detallePedidoService.findOne(idcabpedido,idproducto);
   }
 
+  @Get('search/cabecerapedido/:idcabpedido')
+  findByCabeceraPedido(@Param('idcabpedido',ParseUUIDPipe) idcabpedido: string) {
+    return this.detallePedidoService.findByCabeceraPedido(idcabpedido);
+  }
+
   @Patch(':idcabpedido/:idproducto')
   update(@Param('idcabpedido',ParseUUIDPipe) idcabpedido: string,@Param('idproducto',ParseUUIDPipe) idproducto: string
   , @Body() updateDetallePedidoDto: UpdateDetallePedidoDto) {
@@ -32,5 +37,11 @@ export class DetallePedidoController {
   @Delete(':idcabpedido/:idproducto')
   remove(@Param('idcabpedido',ParseUUIDPipe) idcabpedido: string,@Param('idproducto',ParseUUIDPipe) idproducto: string) {
     return this.detallePedidoService.remove(idcabpedido,idproducto);
+  }
+
+
+  @Post('createall')
+  createAll(@Body() createDetallePedidoDto: CreateDetallePedidoDto[]) {
+    return this.detallePedidoService.createAll(createDetallePedidoDto);
   }
 }
