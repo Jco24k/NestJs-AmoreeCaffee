@@ -25,7 +25,7 @@ export class CabeceraPedidoService {
     const { cliente, mesa } = createCabeceraPedidoDto;
     createCabeceraPedidoDto.cliente = await this.clienteService.findOne(cliente.id);
     if (mesa)
-      createCabeceraPedidoDto.mesa = await this.mesaService.findOne(mesa.id);
+      createCabeceraPedidoDto.mesa = await this.mesaService.findOne(mesa.nombre);
     try {
       const cab = this.cabeceraPedidoRepository.create(createCabeceraPedidoDto);
       return await this.cabeceraPedidoRepository.save(cab);
