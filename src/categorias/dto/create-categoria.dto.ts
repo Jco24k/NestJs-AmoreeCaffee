@@ -1,5 +1,5 @@
 
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 
 
 export class CreateCategoriaDto {
@@ -12,8 +12,8 @@ export class CreateCategoriaDto {
     @IsOptional()
     estado?: boolean;
 
-    @IsString()
-    @IsNotEmpty()
+    @IsString({ each: true })
+    @IsArray()
     @IsOptional()
-    imagenUrl ?:string;
+    images?: string[];
 }

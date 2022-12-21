@@ -8,6 +8,7 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Categoria } from './entities/categoria.entity';
 import { validate as isUUID } from 'uuid';
 import { ConfigService } from '@nestjs/config';
+import { CategoriaImage } from './entities/categoria-image.entity';
 
 @Injectable()
 export class CategoriasService {
@@ -18,15 +19,22 @@ export class CategoriasService {
 
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
+    @InjectRepository(CategoriaImage)
+    private readonly categoriaImageRepository: Repository<CategoriaImage>,
     private readonly configService: ConfigService,
 
   ) { }
 
   async create(createCategoriaDto: CreateCategoriaDto) {
     try {
-      const categoria = this.categoriaRepository.create(createCategoriaDto);
-      return await this.categoriaRepository.save(categoria);
+      const { images = [], ...categoriesDetails } = createCategoriaDto;
+      
+      const categoria = this.categoriaRepository.create({
+        ...categoriesDetails, images : images.map( image => this.categoriaImageRepository.create({ url: image }) )
+      });
+      await this.categoriaRepository.save(categoria);
 
+      return { ...categoria, images}
     } catch (error) {
       this.handleException(error);
     }
@@ -44,9 +52,13 @@ export class CategoriasService {
       }
     })
 
-    return categoria.map(({ imagenUrl, ...detailsCateg }) => ({
+    return categoria.map(({ images, ...detailsCateg }) => ({
       ...detailsCateg,
-      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/categorias/` + imagenUrl : null)
+      images:
+       (images ? images.map( x => { 
+        if(!x.external) return `${this.configService.get<String>('HOST_API')}/categorias/` + x.url
+        return x.url;
+      }) : [])
     }))
   }
 
@@ -58,7 +70,7 @@ export class CategoriasService {
           id: search
         },
         relations: {
-          producto: true
+          images: true
         }
       });
     } else {
@@ -67,25 +79,30 @@ export class CategoriasService {
           nombre: search.toLowerCase()
         },
         relations:{
-          producto: true
+          images: true
         }
       });
     }
     if (!categ) throw new NotFoundException(`Categoria with id or nombre ${search} not found`);
     return {
-      ...categ, imagenUrl: (
-        categ.imagenUrl ? `${this.configService.get<String>('HOST_API')}/categorias/` + categ.imagenUrl : null)
+      ...categ
     };
   }
 
   async update(id: string, updateCategoriaDto: UpdateCategoriaDto) {
+    const { images, ...categoriesDetails } = updateCategoriaDto;
+
     const categoria = await this.findOne(id);
     if (updateCategoriaDto.id) updateCategoriaDto.id = id;
     try {
+      if( images ) {
+        await this.categoriaImageRepository.delete({categoria:{ id } });
+        categoria.images = images.map( image => this.categoriaImageRepository.create({ url: image }) )
+      }
       await this.categoriaRepository.update({ id }, {
-        ...updateCategoriaDto
+        ...categoriesDetails
       })
-      return { ...categoria, ...updateCategoriaDto };
+      return { ...categoriesDetails, ...images };
     } catch (error) {
       this.handleException(error);
     }

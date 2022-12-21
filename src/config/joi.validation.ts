@@ -9,6 +9,8 @@ export const JoiValidationSchema = Joi.object({
     UPLOAD_LOCATION: Joi.required(),
     PORT: Joi.number().default(3005),
     DEFAULT_LIMIT: Joi.number().default(10),
-    JWT_SECRET: Joi.required() 
+    JWT_SECRET: Joi.required(),
+    CORREO_SEED: Joi.required(),    
+    PASSWORD_SEED: Joi.required(),
 
 }) 

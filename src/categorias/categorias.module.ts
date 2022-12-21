@@ -5,13 +5,14 @@ import { Categoria } from './entities/categoria.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductosModule } from 'src/productos/productos.module';
 import { ConfigModule } from '@nestjs/config';
+import { CategoriaImage } from './entities/categoria-image.entity';
 
 @Module({
   controllers: [CategoriasController],
   providers: [CategoriasService],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Categoria]),
+    TypeOrmModule.forFeature([Categoria , CategoriaImage]),
     forwardRef(() => ProductosModule),
   ],
   exports: [

@@ -11,7 +11,7 @@ export class Producto {
 
     @Column('text', {
         nullable: false,
-        unique: true
+        unique: true 
     })
     nombre: string;
 

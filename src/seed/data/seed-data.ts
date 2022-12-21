@@ -8,9 +8,9 @@ interface SeedData {
     productos: SeedProducto[];
     comprobantes: SeedComprobante[];
 
-}
+} 
 
-interface SeedCliente {
+export interface SeedCliente {
     nombre: string;
     apellidos: string;
     telefono: string;

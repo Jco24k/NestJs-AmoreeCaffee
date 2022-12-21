@@ -1,5 +1,6 @@
 import { Producto } from "src/productos/entities/producto.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { CategoriaImage } from "./categoria-image.entity";
 
 
 
@@ -28,11 +29,12 @@ export class Categoria {
     
 
     
-    @Column('text', {
-        default: null,
-        nullable:true
-    })
-    imagenUrl : string
+    @OneToMany(
+        () => CategoriaImage,
+        (categoria_images) => categoria_images.categoria,
+        { cascade: true, eager: true }
+    )
+    images?: CategoriaImage[];
 
 
     @BeforeInsert()

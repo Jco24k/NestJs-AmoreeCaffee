@@ -8,11 +8,13 @@ import { ProductosModule } from 'src/productos/productos.module';
 import { CabeceraPedidoModule } from 'src/cabecera-pedido/cabecera-pedido.module';
 import { ComprobanteModule } from 'src/comprobante/comprobante.module';
 import { DetallePedidoModule } from 'src/detalle-pedido/detalle-pedido.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
   imports:[
+    ConfigModule,
     forwardRef(() => CategoriasModule),
     forwardRef(() => ClientesModule),
     forwardRef(() => MesaModule),
