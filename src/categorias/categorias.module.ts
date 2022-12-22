@@ -5,19 +5,21 @@ import { Categoria } from './entities/categoria.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductosModule } from 'src/productos/productos.module';
 import { ConfigModule } from '@nestjs/config';
-import { CategoriaImage } from './entities/categoria-image.entity';
+import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module';
 
 @Module({
   controllers: [CategoriasController],
   providers: [CategoriasService],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Categoria , CategoriaImage]),
+    TypeOrmModule.forFeature([Categoria]),
     forwardRef(() => ProductosModule),
+    forwardRef(() => CategoriaImageModule),
+
   ],
   exports: [
     TypeOrmModule, CategoriasService,
 
   ]
 })
-export class CategoriasModule {}
+export class CategoriasModule { }

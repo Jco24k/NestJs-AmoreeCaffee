@@ -17,6 +17,8 @@ import { FilesModule } from './files/files.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { SeedModule } from './seed/seed.module';
+import { ProductoImageModule } from './producto-image/producto-image.module';
+import { CategoriaImageModule } from './categoria-image/categoria-image.module';
 @Module({
   imports: [
     ConfigModule.forRoot( 
@@ -42,6 +44,8 @@ import { SeedModule } from './seed/seed.module';
     //MEIDANTE LA URL EJEMPLO: http://localhost:3000/products/1473809-00-A_1_2000.jpg
     }),
     SeedModule,
+    ProductoImageModule,
+    CategoriaImageModule,
   ]
 })
 export class AppModule {}

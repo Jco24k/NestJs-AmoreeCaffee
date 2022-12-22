@@ -6,16 +6,17 @@ import { Producto } from './entities/producto.entity';
 import { CategoriasModule } from 'src/categorias/categorias.module';
 import { DetallePedidoModule } from 'src/detalle-pedido/detalle-pedido.module';
 import { ConfigModule } from '@nestjs/config';
-import { ProductoImage } from './entities/producto-image.entity';
+import { ProductoImageModule } from 'src/producto-image/producto-image.module';
 
 @Module({
   controllers: [ProductosController],
   providers: [ProductosService],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Producto, ProductoImage]),
+    TypeOrmModule.forFeature([Producto]),
     forwardRef(() => CategoriasModule),
-    forwardRef(() => DetallePedidoModule)
+    forwardRef(() => DetallePedidoModule),
+    forwardRef(()=> ProductoImageModule)
 
   ],
   exports: [

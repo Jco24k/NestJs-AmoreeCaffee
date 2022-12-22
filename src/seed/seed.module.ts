@@ -9,6 +9,8 @@ import { CabeceraPedidoModule } from 'src/cabecera-pedido/cabecera-pedido.module
 import { ComprobanteModule } from 'src/comprobante/comprobante.module';
 import { DetallePedidoModule } from 'src/detalle-pedido/detalle-pedido.module';
 import { ConfigModule } from '@nestjs/config';
+import { ProductoImageModule } from 'src/producto-image/producto-image.module';
+import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module';
 
 @Module({
   controllers: [SeedController],
@@ -16,12 +18,15 @@ import { ConfigModule } from '@nestjs/config';
   imports:[
     ConfigModule,
     forwardRef(() => CategoriasModule),
+    forwardRef(() => CategoriaImageModule),
     forwardRef(() => ClientesModule),
     forwardRef(() => MesaModule),
     forwardRef(() => ProductosModule),
+    forwardRef(() => ProductoImageModule),
     forwardRef(() => CabeceraPedidoModule),
     forwardRef(() => ComprobanteModule),
     forwardRef(() => DetallePedidoModule),
+
 
 
 

@@ -1,6 +1,6 @@
 import { Producto } from "src/productos/entities/producto.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { CategoriaImage } from "./categoria-image.entity";
+import { CategoriaImage } from "../../categoria-image/entities/categoria-image.entity";
 
 
 

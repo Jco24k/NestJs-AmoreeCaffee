@@ -8,7 +8,7 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Categoria } from './entities/categoria.entity';
 import { validate as isUUID } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import { CategoriaImage } from './entities/categoria-image.entity';
+import { CategoriaImage } from '../categoria-image/entities/categoria-image.entity';
 
 @Injectable()
 export class CategoriasService {

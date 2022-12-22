@@ -9,7 +9,7 @@ import { Producto } from './entities/producto.entity';
 import { validate as isUUID } from 'uuid';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 import { ConfigService } from '@nestjs/config';
-import { ProductoImage } from './entities/producto-image.entity';
+import { ProductoImage } from '../producto-image/entities/producto-image.entity';
 
 @Injectable()
 export class ProductosService {

@@ -1,9 +1,9 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Producto } from './producto.entity';
+import { Categoria } from '../../categorias/entities/categoria.entity';
 
 
-@Entity({ name: 'producto_images' })
-export class ProductoImage {
+@Entity({ name: 'categoria_images' })
+export class CategoriaImage {
 
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -12,11 +12,11 @@ export class ProductoImage {
     url: string;
 
     @ManyToOne(
-        () => Producto,
-        ( producto ) => producto.images,
+        () => Categoria,
+        ( categoria ) => categoria.images,
         {  onDelete: 'CASCADE' }
     )
-    producto: Producto
+    categoria: Categoria
 
     @Column('bool',{
         default: false
