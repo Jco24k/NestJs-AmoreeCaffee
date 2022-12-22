@@ -8,7 +8,7 @@ import { BeforeInsert, BeforeUpdate, Column, Entity, JoinColumn, ManyToOne, OneT
 export class DetallePedido {
 
 
-    @ManyToOne(type => CabeceraPedido)
+    @ManyToOne(type => CabeceraPedido, {  onDelete: 'CASCADE' })
     cabeceraPedido: CabeceraPedido;
     
     @PrimaryColumn()

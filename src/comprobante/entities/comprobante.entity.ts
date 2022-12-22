@@ -24,7 +24,7 @@ export class Comprobante {
     @ManyToOne(
         () => CabeceraPedido,
         (cabeceraPedido) => cabeceraPedido.comprobante,
-        { eager: true, nullable: false }
+        { eager: true, nullable: false ,  onDelete: 'CASCADE'  }
     )
     cabeceraPedido: CabeceraPedido;
     

@@ -48,7 +48,7 @@ export class CategoriasService {
       skip: offset,
       order: JSON.parse(`{"${orderby}": "${sordir}" }`),
       relations: {
-        producto: true,
+        images: true,
       }
     })
 

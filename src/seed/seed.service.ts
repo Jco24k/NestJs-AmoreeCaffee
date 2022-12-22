@@ -15,6 +15,7 @@ import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import * as format from 'pg-format';
 import { SeedFormatSql } from './interfaces/seed-format.interface';
+import { CategoriaImage } from 'src/categorias/entities/categoria-image.entity';
 
 @Injectable()
 export class SeedService {
@@ -26,6 +27,8 @@ export class SeedService {
     private readonly mesaRepository: Repository<Mesa>,
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
+    @InjectRepository(CategoriaImage)
+    private readonly categoriaimageRepository: Repository<CategoriaImage>,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
     @InjectRepository(CabeceraPedido)
@@ -40,23 +43,28 @@ export class SeedService {
   ) { }
 
   async seedExecute(emailSeed: EmailSeed) {
-    const registerCant = { clientes: 20_000, categorias: 1_000, mesas: 20_000, productos: 2000 }
+    const registerCant = { clientes: 20_000, categorias: 20_000, mesas: 20_000, productos: 20_000 }
     const userValid: EmailSeed = { correo: this.configService.get<string>("CORREO_SEED"), password: this.configService.get<string>("PASSWORD_SEED") };
     if (emailSeed.correo !== userValid.correo || emailSeed.password !== userValid.password) throw new UnauthorizedException('Credentials are not valid');
+    console.log('INICIO')
+    console.time("ELIMINACION");
     await this.deleteTables()
+    console.timeEnd("ELIMINACION");
+    console.log('Eliminado')
     try {
-      console.time("inicio Creacion Cliente : " + registerCant.clientes);
-    await this.insertClientes(registerCant.clientes);
-    console.timeEnd("inicio Creacion Cliente : " + registerCant.clientes);
-    console.time("inicio Creacion Categoria : " + registerCant.categorias);
-    await this.insertCategorias(registerCant.categorias);
-    console.timeEnd("inicio Creacion Categoria : " + registerCant.categorias);
-    console.time("inicio Creacion Mesas : " + registerCant.mesas);
-    await this.insertMesas(registerCant.mesas);
-    console.timeEnd("inicio Creacion Mesas : " + registerCant.mesas);
-    // console.time("inicio Creacion Productos : " + registerCant.productos);
-    // await this.insertProductos(registerCant.productos);
-    // console.timeEnd("inicio Creacion Productos : " + registerCant.productos);
+      console.time("inicio tablas primarias : " + registerCant.clientes);
+    // await this.insertClientes(registerCant.clientes);
+    // console.timeEnd("inicio Creacion Cliente : " + registerCant.clientes);
+    // console.time("inicio Creacion Categoria : " + registerCant.categorias);
+    // await this.insertCategorias(registerCant.categorias);
+    // console.timeEnd("inicio Creacion Categoria : " + registerCant.categorias);
+    // console.time("inicio Creacion Mesas : " + registerCant.mesas);
+    // await this.insertMesas(registerCant.mesas);
+    await Promise.allSettled([this.insertClientes(registerCant.clientes),this.insertCategorias(registerCant.categorias),this.insertMesas(registerCant.mesas)])
+    console.timeEnd("inicio tablas primarias : " + registerCant.clientes);
+    console.time("inicio Creacion Productos : " + registerCant.productos);
+    await this.insertProductos(registerCant.productos);
+    console.timeEnd("inicio Creacion Productos : " + registerCant.productos);
     // const categorias: Categoria[] = await this.insertCategorias();
     // const mesas: Mesa[] = await this.insertMesas();
     // const productos: Producto[] = await this.insertProductos(categorias);
@@ -82,16 +90,19 @@ export class SeedService {
 
 
   private async deleteTables() {
-    const insertInitialPromises = [
-      await this.comprobanteRepository.delete({}),
-      await this.detPedidoRepository.delete({}),
-      await this.cabPedidoRepository.delete({}),
-      await this.productoRepository.delete({}),
-      await this.clienteRepository.delete({}),
-      await this.mesaRepository.delete({}),
-      await this.categoriaRepository.delete({})
-    ];
-    await Promise.all(insertInitialPromises);
+    await this.cabPedidoRepository.delete({})
+    console.log('1')
+    await this.productoRepository.delete({})
+    console.log('2')
+    await this.clienteRepository.delete({})
+    console.log('3')
+    await this.mesaRepository.delete({})
+    console.log('4')
+    await this.categoriaimageRepository.delete({})
+    console.log('5')
+    await this.categoriaRepository.delete({})
+    console.log('6')
+
   }
 
   private async insertClientes(cant: number) {
@@ -115,10 +126,19 @@ export class SeedService {
       new Array(cant),
       (value, index) => [faker.internet.password() + index,true]
     )))
+    const categories = await this.categoriaRepository.find()
+    await this.dataSource.query(format(SeedFormatSql.categories_images, Array.from(
+      new Array(cant),
+      (value, index) => [
+        faker.image.abstract(640, 480, true),
+        true,
+        categories.at(index).id
+      ]
+    )))
   }
-
+ 
   private async insertMesas(cant: number) {
-    await this.mesaRepository.query(format(SeedFormatSql.tables, Array.from(
+    await this.dataSource.query(format(SeedFormatSql.tables, Array.from(
       new Array(cant),
       (value, index) => [faker.internet.password() + index]
     )))
@@ -126,16 +146,13 @@ export class SeedService {
 
   private async insertProductos(cant:number) {
     const categories = await this.categoriaRepository.find()
-    await this.productoRepository.query(format(SeedFormatSql.products, Array.from(
+    await this.dataSource.query(format(SeedFormatSql.products, Array.from(
       new Array(cant), 
       (value, index) => [
-        faker.datatype.uuid(),
         faker.commerce.product()+index,
         faker.commerce.productDescription(),
-        faker.commerce.price(1,500,2,''),
+        +faker.commerce.price(1,500,2,''),
         faker.datatype.number({ min:0 ,max: 200 }),
-        true,
-        null,
         categories.at(Math.floor(Math.random() * categories.length)).id
       ]
     )))
