@@ -97,10 +97,10 @@ export class CategoriasService {
     try {
       if( images ) {
         await this.categoriaImageRepository.delete({categoria:{ id } });
-        categoria.images = images.map( image => this.categoriaImageRepository.create({ url: image }) )
       }
       await this.categoriaRepository.update({ id }, {
-        ...categoriesDetails
+        ...categoriesDetails, images:
+        images.map( image => this.categoriaImageRepository.create({ url: image }) )
       })
       return { ...categoriesDetails, ...images };
     } catch (error) {
@@ -122,5 +122,19 @@ export class CategoriasService {
 
     this.logger.error(error)
     throw new InternalServerErrorException('Unexpected error, check server logs');
+  }
+
+  async deleteAllProducts() {
+    const query = this.categoriaRepository.createQueryBuilder('categorias');
+    try {
+      return await query
+        .delete()
+        .where({})
+        .execute();
+
+    } catch (error) {
+      this.handleException(error);
+    }
+
   }
 }

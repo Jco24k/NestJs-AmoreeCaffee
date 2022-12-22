@@ -16,6 +16,7 @@ import * as bcrypt from 'bcrypt';
 import * as format from 'pg-format';
 import { SeedFormatSql } from './interfaces/seed-format.interface';
 import { CategoriaImage } from 'src/categorias/entities/categoria-image.entity';
+import { CategoriasService } from 'src/categorias/categorias.service';
 
 @Injectable()
 export class SeedService {
@@ -28,7 +29,7 @@ export class SeedService {
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
     @InjectRepository(CategoriaImage)
-    private readonly categoriaimageRepository: Repository<CategoriaImage>,
+    private readonly categoriaImageRepository: Repository<CategoriaImage>,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
     @InjectRepository(CabeceraPedido)
@@ -38,12 +39,13 @@ export class SeedService {
     @InjectRepository(Comprobante)
     private readonly comprobanteRepository: Repository<Comprobante>,
     private readonly configService: ConfigService,
-    private readonly dataSource: DataSource
+    private readonly dataSource: DataSource,
+    private readonly categoriaService : CategoriasService
 
   ) { }
 
   async seedExecute(emailSeed: EmailSeed) {
-    const registerCant = { clientes: 20_000, categorias: 20_000, mesas: 20_000, productos: 20_000 }
+    const registerCant = { clientes: 20_000, categorias: 100, mesas: 20_000, productos: 20_000 }
     const userValid: EmailSeed = { correo: this.configService.get<string>("CORREO_SEED"), password: this.configService.get<string>("PASSWORD_SEED") };
     if (emailSeed.correo !== userValid.correo || emailSeed.password !== userValid.password) throw new UnauthorizedException('Credentials are not valid');
     console.log('INICIO')
@@ -96,12 +98,13 @@ export class SeedService {
     console.log('2')
     await this.clienteRepository.delete({})
     console.log('3')
-    await this.mesaRepository.delete({})
+    await this.categoriaImageRepository.delete({});
     console.log('4')
-    await this.categoriaimageRepository.delete({})
+    await this.dataSource.query(format('delete from categorias'))
     console.log('5')
-    await this.categoriaRepository.delete({})
+    await this.mesaRepository.delete({})
     console.log('6')
+   
 
   }
 
@@ -124,7 +127,7 @@ export class SeedService {
   private async insertCategorias(cant: number) {
     await this.dataSource.query(format(SeedFormatSql.categories, Array.from(
       new Array(cant),
-      (value, index) => [faker.internet.password() + index,true]
+      (value, index) => [faker.commerce.department() + index,true]
     )))
     const categories = await this.categoriaRepository.find()
     await this.dataSource.query(format(SeedFormatSql.categories_images, Array.from(

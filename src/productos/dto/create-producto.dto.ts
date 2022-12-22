@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsNotEmptyObject, IsNumber, IsObject, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
 import { Categoria } from "src/categorias/entities/categoria.entity";
 
 export class CreateProductoDto {
@@ -34,8 +34,8 @@ export class CreateProductoDto {
     @IsOptional()
     estado:boolean;
 
-    @IsString()
-    @IsNotEmpty()
+    @IsString({ each: true })
+    @IsArray()
     @IsOptional()
-    imagenUrl ?:string;
+    images?: string[];
 }

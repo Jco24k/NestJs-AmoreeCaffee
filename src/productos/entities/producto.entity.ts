@@ -1,6 +1,7 @@
 import { Categoria } from "src/categorias/entities/categoria.entity";
 import { DetallePedido } from "src/detalle-pedido/entities/detalle-pedido.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ProductoImage } from "./producto-image.entity";
 
 
 @Entity({ name: 'productos' })
@@ -63,10 +64,11 @@ export class Producto {
         if (this.nombre) this.nombre.toLowerCase();
     }
 
-    @Column('text', {
-        default: null,
-        nullable:true
-    })
-    imagenUrl ?: string
+    @OneToMany(
+        () => ProductoImage,
+        (producto_images) => producto_images.producto,
+        { cascade: true, eager: true }
+    )
+    images?: ProductoImage[];
     
 }

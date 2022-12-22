@@ -24,9 +24,9 @@ export class FilesService {
     try {
       if(!isUUID(idpro)) throw  new BadRequestException('Validation failed (uuid is expected)');
       const pro = await this.productoService.findOne(idpro);
-      if (pro.imagenUrl) this.deleteImage(pro.imagenUrl)
+      // if (pro.imagenUrl) this.deleteImage(pro.imagenUrl)
       const secureUrl = `${this.configService.get<String>('HOST_API')}/productos/${archivo.filename}`;
-      await this.productoRepository.update({ id: idpro }, { imagenUrl: archivo.filename });
+      // await this.productoRepository.update({ id: idpro }, { imagenUrl: archivo.filename });
       return { secureUrl }
 
     } catch (error) {

@@ -9,6 +9,7 @@ import { Producto } from './entities/producto.entity';
 import { validate as isUUID } from 'uuid';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 import { ConfigService } from '@nestjs/config';
+import { ProductoImage } from './entities/producto-image.entity';
 
 @Injectable()
 export class ProductosService {
@@ -18,6 +19,8 @@ export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
+    @InjectRepository(ProductoImage)
+    private readonly productoImageRepository: Repository<ProductoImage>,
     private readonly categoriaService: CategoriasService,
     private readonly configService: ConfigService,
 
@@ -25,11 +28,14 @@ export class ProductosService {
 
 
   async create(createProductoDto: CreateProductoDto) {
-    const { estado, ...detailsPro } = await this.categoriaService.findOne(createProductoDto.categoria.id);
+    const { images = [], ...detailsPro } = createProductoDto;
     try {
-      const producto = this.productoRepository.create(createProductoDto);
-      return { ...(await this.productoRepository.save(producto)), categoria: detailsPro };
-
+      const producto = this.productoRepository.create({
+        ...detailsPro,
+        images: images.map(image =>
+          this.productoImageRepository.create({ url: image }))
+      });
+      return { ...producto, images };
 
     } catch (error) {
       this.handleException(error);
@@ -44,31 +50,32 @@ export class ProductosService {
       order: JSON.parse(`{"${orderby}": "${sordir}" }`)
     })
 
-    return listPro.map(({ categoria: { nombre, id }, imagenUrl, ...detailsPro }) => ({
+    return listPro.map(({ categoria: { nombre, id }, images, ...detailsPro }) => ({
       ...detailsPro,
       categoria: { nombre, id },
-      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` + imagenUrl : null)
+      images:
+        (images ? images.map(x => {
+          if (!x.external) return `${this.configService.get<String>('HOST_API')}/productos/` + x.url
+          return x.url;
+        }) : [])
     }))
   }
 
   async findOne(search: string) {
     let producto: Producto;
     if (isUUID(search)) {
-      producto = await this.productoRepository.findOneBy({ id: search });
+      producto = await this.productoRepository.findOne({ where: { id: search }, relations: { images: true } });
     } else {
       producto = await this.productoRepository.findOne({
         where: {
           nombre: search.toLowerCase()
-        }
+        },
+        relations: { images: true }
       });
     }
     if (!producto) throw new NotFoundException(`producto with id or nombre ${search} not found`);
     const { categoria: { nombre, id } } = producto;
-    return {
-      ...producto, categoria: { id, nombre }, imagenUrl: (
-        producto.imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` +
-          producto.imagenUrl : null)
-    };
+    return producto;
   }
 
   async findOnebyCategoria(search: string, categoria: string) {
@@ -91,18 +98,25 @@ export class ProductosService {
         categoria: {
           nombre: categoria
         }
-      }
+      },
+      relations:{ categoria:true, images: true}
     });
-    return pro.map(({ categoria: { nombre, id }, imagenUrl, ...detailsPro }) => ({
+    return pro.map(({ categoria: { nombre, id }, images, ...detailsPro }) => ({
       ...detailsPro,
       categoria: { nombre, id },
-      imagenUrl: (imagenUrl ? `${this.configService.get<String>('HOST_API')}/productos/` + imagenUrl : null)
+      images:
+        (images ? images.map(x => {
+          if (!x.external) return `${this.configService.get<String>('HOST_API')}/productos/` + x.url
+          return x.url;
+        }) : [])
     }))
   }
 
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
     if (updateProductoDto.id) updateProductoDto.id = id;
+    const { images, ...categoriesDetails } = updateProductoDto;
+
     let { categoria } = updateProductoDto;
     const producto = await this.findOne(id);
     if (categoria) {
@@ -110,8 +124,12 @@ export class ProductosService {
       updateProductoDto.categoria = { id, nombre } as Categoria;
     }
     try {
+      if( images ) {
+        await this.productoImageRepository.delete({producto:{ id } });
+      }
       await this.productoRepository.update({ id }, {
-        ...updateProductoDto
+        ...updateProductoDto, images:
+        images.map( image => this.productoImageRepository.create({ url: image }) )
       })
       return { ...producto, ...updateProductoDto };
     } catch (error) {
