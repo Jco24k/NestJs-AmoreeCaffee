@@ -1,6 +1,6 @@
 import { Producto } from "src/productos/entities/producto.entity";
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { CategoriaImage } from "../../categoria-image/entities/categoria-image.entity";
+import { CategoriaImage } from "./categoria-image.entity";
 
 
 
@@ -25,7 +25,7 @@ export class Categoria {
         () => Producto,
         ( product ) => product.categoria
     )
-    producto: Producto;
+    producto: Producto[];
     
 
     
@@ -34,7 +34,7 @@ export class Categoria {
         (categoria_images) => categoria_images.categoria,
         { cascade: true, eager: true }
     )
-    images?: CategoriaImage[];
+    images : CategoriaImage[];
 
 
     @BeforeInsert()

@@ -11,11 +11,14 @@ import { DetallePedidoModule } from 'src/detalle-pedido/detalle-pedido.module';
 import { ConfigModule } from '@nestjs/config';
 import { ProductoImageModule } from 'src/producto-image/producto-image.module';
 import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module';
+import { EmployeesModule } from 'src/employees/employees.module';
+import { RolesModule } from 'src/roles/roles.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [SeedController],
   providers: [SeedService],
-  imports:[
+  imports: [
     ConfigModule,
     forwardRef(() => CategoriasModule),
     forwardRef(() => CategoriaImageModule),
@@ -26,11 +29,11 @@ import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module
     forwardRef(() => CabeceraPedidoModule),
     forwardRef(() => ComprobanteModule),
     forwardRef(() => DetallePedidoModule),
-
-
-
+    forwardRef(() => EmployeesModule),
+    forwardRef(() => RolesModule),
+    forwardRef(() => UserModule )
 
 
   ]
 })
-export class SeedModule {}
+export class SeedModule { }

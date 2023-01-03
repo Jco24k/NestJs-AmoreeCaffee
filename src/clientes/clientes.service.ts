@@ -2,24 +2,29 @@ import { BadRequestException, Injectable, InternalServerErrorException, Logger, 
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
 import { Cliente } from './entities/cliente.entity';
 import { validate as isUUID } from 'uuid';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ClientesService {
   private readonly logger = new Logger('ClienteService');
+  private defaultLimit: number;
 
   constructor(
 
     @InjectRepository(Cliente)
     private readonly clienteRepository: Repository<Cliente>,
-    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
 
-  ) { }
+  ) {
+
+    this.defaultLimit = this.configService.get<number>('defaultlimit');
+  }
 
   async create(createClienteDto: CreateClienteDto) {
     const { password, ...clienteData } = createClienteDto
@@ -29,19 +34,22 @@ export class ClientesService {
         ...clienteData,
         password: bcrypt.hashSync(password, 10)
       });
-      const newClient = await this.clienteRepository.save(cliente);
-      return { ...newClient, token: this.authService.getJwtToken({ id: newClient.id }) };
+      return await this.clienteRepository.save(cliente);
     } catch (error) {
       this.handleException(error);
     }
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0, orderby = 'id', sordir = 'asc' } = paginationDto;
+    const { limit = this.defaultLimit, offset = 0, orderby = 'id', sordir = 'asc', estado = 'all' } = paginationDto;
+    const condition: FindOptionsWhere<Cliente> = (estado === 'all' ? {} : { estado: (estado === 'active' ? true : false) })
+    const orderBy: FindOptionsOrder<Cliente> = JSON.parse(`{"${orderby}": "${sordir}" }`)
+
     return await this.clienteRepository.find({
       take: limit,
       skip: offset,
-      order: JSON.parse(`{"${orderby}": "${sordir}" }`),
+      order: orderBy,
+      where: condition
     })
   }
 
@@ -75,7 +83,7 @@ export class ClientesService {
   }
 
   async remove(id: string) {
-    const cli = await this.findOne(id);
+    await this.findOne(id);
     await this.clienteRepository.update({ id }, { estado: false });
     return { message: `Cliente with id ${id} deleted successfully` };
 

@@ -7,11 +7,13 @@ import { DetallePedidoModule } from 'src/detalle-pedido/detalle-pedido.module';
 import { ClientesModule } from 'src/clientes/clientes.module';
 import { MesaModule } from 'src/mesa/mesa.module';
 import { ComprobanteModule } from 'src/comprobante/comprobante.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   controllers: [CabeceraPedidoController],
   providers: [CabeceraPedidoService],
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([CabeceraPedido]),
     forwardRef(() => DetallePedidoModule),
     forwardRef(() => ClientesModule),

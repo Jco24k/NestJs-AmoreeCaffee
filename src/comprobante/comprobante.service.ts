@@ -1,20 +1,29 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CabeceraPedidoService } from 'src/cabecera-pedido/cabecera-pedido.service';
 import { CabeceraPedido } from 'src/cabecera-pedido/entities/cabecera-pedido.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateComprobanteDto } from './dto/create-comprobante.dto';
 import { UpdateComprobanteDto } from './dto/update-comprobante.dto';
 import { Comprobante } from './entities/comprobante.entity';
 import { validate as isUUID } from 'uuid';
+import { ConfigService } from '@nestjs/config';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class ComprobanteService {
+  private defaultLimit: number;
+
   constructor(
     @InjectRepository(Comprobante)
     private readonly comprobanteRepository: Repository<Comprobante>,
-    private readonly cabeceraPedidoService: CabeceraPedidoService
-  ) { }
+    @Inject(forwardRef(() => CabeceraPedidoService))
+    private readonly cabeceraPedidoService: CabeceraPedidoService,
+    private readonly configService: ConfigService,
+  ) {
+    this.defaultLimit = this.configService.get<number>('defaultlimit');
+
+  }
 
 
   async create(createComprobanteDto: CreateComprobanteDto) {
@@ -28,11 +37,19 @@ export class ComprobanteService {
     }
   }
 
-  async findAll() {
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = this.defaultLimit, offset = 0, orderby = 'id', sordir = 'asc', estado = 'all' } = paginationDto;
+    const condition: FindOptionsWhere<Comprobante> = (estado === 'all' ? {} : JSON.parse(`{"estado": "${(estado === 'active' ? true : false)}" }`))
+    const orderBy: FindOptionsOrder<Comprobante> = JSON.parse(`{"${orderby}": "${sordir}" }`)
+
     return await this.comprobanteRepository.find({
+      take: limit,
+      skip: offset,
+      order: orderBy,
       relations: {
         cabeceraPedido: true
-      }
+      },
+      where: condition
     });
   }
 
@@ -42,7 +59,7 @@ export class ComprobanteService {
       comprobante = await this.comprobanteRepository.findOneBy({ id: search });
     } else {
       comprobante = await this.comprobanteRepository.findOne({
-        where: { nro: search.toLowerCase()}
+        where: { nro: search.toLowerCase() }
       });
     }
     if (!comprobante) throw new NotFoundException(`Comprobante with id or nro ${search} not found`);
@@ -55,7 +72,7 @@ export class ComprobanteService {
     let { cabeceraPedido } = updateComprobanteDto;
     const comprobante = await this.findOne(id);
     if (cabeceraPedido) {
-      updateComprobanteDto.cabeceraPedido  = await this.cabeceraPedidoService.findOne(cabeceraPedido.id);
+      updateComprobanteDto.cabeceraPedido = await this.cabeceraPedidoService.findOne(cabeceraPedido.id);
     }
     try {
       await this.comprobanteRepository.update({ id }, {
@@ -69,6 +86,8 @@ export class ComprobanteService {
 
   async remove(id: string) {
     await this.findOne(id);
+    const cabPedido = await this.cabeceraPedidoService.findCabeceraPedidoActive(id);
+    if (cabPedido) throw new InternalServerErrorException(`Comprobante with id ${id} cannot be deleted because it is in use.`)
     await this.comprobanteRepository.update({ id }, { estado: false });
     return { message: `Comprobante with id ${id} deleted successfully` };
 

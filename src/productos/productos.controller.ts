@@ -4,8 +4,11 @@ import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ParseUUIDPipe } from '@nestjs/common/pipes';
+import { CurrentPathInterface } from 'src/common/interfaces/current-path.interface';
+import { FilterPagination } from 'src/common/decorators/filter-pagination-decorator';
+import { ParseFilterAll } from 'src/common/pipes/parse-filter-all.pipe';
 
-@Controller('productos')
+@Controller(CurrentPathInterface.producto)
 export class ProductosController {
   constructor(private readonly productosService: ProductosService) {}
 
@@ -15,13 +18,13 @@ export class ProductosController {
   }
 
   @Get()
-  findAll(@Query() paginationDto:PaginationDto ) {
+  findAll(@FilterPagination(ParseFilterAll) paginationDto: PaginationDto) {
     return this.productosService.findAll(paginationDto);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productosService.findOne(id);
+    return this.productosService.findProductImage(id);
   }
 
   @Get(':search/:categoria')

@@ -1,6 +1,5 @@
-// import { Types } from "mongoose";
 
 
 export interface JwtPayload{
-    id: string
+    id:string; 
 }

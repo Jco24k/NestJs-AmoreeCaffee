@@ -4,8 +4,11 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CategoriasService } from './categorias.service';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { CurrentPathInterface } from 'src/common/interfaces/current-path.interface';
+import { FilterPagination } from 'src/common/decorators/filter-pagination-decorator';
+import { ParseFilterAll } from 'src/common/pipes/parse-filter-all.pipe';
 
-@Controller('categorias')
+@Controller(CurrentPathInterface.categoria)
 export class CategoriasController {
   constructor(private readonly categoriasService: CategoriasService) {}
 
@@ -15,13 +18,13 @@ export class CategoriasController {
   }
 
   @Get()
-  findAll(@Query() paginationDto:PaginationDto ) {
+  findAll(@FilterPagination(ParseFilterAll) paginationDto: PaginationDto) {
     return this.categoriasService.findAll(paginationDto);
   }
 
   @Get(':search')
   findOne(@Param('search') search: string) {
-    return this.categoriasService.findOne(search);
+    return this.categoriasService.findCategoriaImage(search);
   }
 
   @Patch(':id')

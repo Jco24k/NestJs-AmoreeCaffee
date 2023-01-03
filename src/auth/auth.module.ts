@@ -5,7 +5,8 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { ClientesModule } from 'src/clientes/clientes.module';
+import { EmployeesModule } from '../employees/employees.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   controllers: [AuthController],
@@ -30,8 +31,11 @@ import { ClientesModule } from 'src/clientes/clientes.module';
         }
       }
     }),
-    forwardRef(()=> ClientesModule)
+
+    forwardRef(() => EmployeesModule),
+    forwardRef(() => UserModule),
 
   ]
+
 })
 export class AuthModule { }

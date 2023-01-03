@@ -3,8 +3,12 @@ import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { CabeceraPedidoService } from './cabecera-pedido.service';
 import { CreateCabeceraPedidoDto } from './dto/create-cabecera-pedido.dto';
 import { UpdateCabeceraPedidoDto } from './dto/update-cabecera-pedido.dto';
+import { CurrentPathInterface } from 'src/common/interfaces/current-path.interface';
+import { FilterPagination } from 'src/common/decorators/filter-pagination-decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ParseFilterAll } from 'src/common/pipes/parse-filter-all.pipe';
 
-@Controller('cabpedido')
+@Controller(CurrentPathInterface.cabeceraPedido)
 export class CabeceraPedidoController {
   constructor(private readonly cabeceraPedidoService: CabeceraPedidoService) {}
 
@@ -14,8 +18,8 @@ export class CabeceraPedidoController {
   }
 
   @Get()
-  findAll() {
-    return this.cabeceraPedidoService.findAll();
+  findAll(@FilterPagination(ParseFilterAll) paginationDto: PaginationDto) {
+    return this.cabeceraPedidoService.findAll(paginationDto);
   }
 
   @Get(':id')

@@ -6,16 +6,19 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductosModule } from 'src/productos/productos.module';
 import { ConfigModule } from '@nestjs/config';
 import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module';
+import { CategoriaImage } from './entities/categoria-image.entity';
+import { FilesModule } from 'src/files/files.module';
 
 @Module({
   controllers: [CategoriasController],
   providers: [CategoriasService],
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([Categoria]),
+    TypeOrmModule.forFeature([Categoria, CategoriaImage]),
     forwardRef(() => ProductosModule),
     forwardRef(() => CategoriaImageModule),
-
+    forwardRef(() => FilesModule)
+    
   ],
   exports: [
     TypeOrmModule, CategoriasService,

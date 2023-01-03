@@ -1,53 +1,71 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriasService } from 'src/categorias/categorias.service';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { Producto } from './entities/producto.entity';
 import { validate as isUUID } from 'uuid';
 import { Categoria } from 'src/categorias/entities/categoria.entity';
 import { ConfigService } from '@nestjs/config';
-import { ProductoImage } from '../producto-image/entities/producto-image.entity';
+import { ProductoImage } from './entities/producto-image.entity';
+import { validPathImage } from 'src/common/interfaces/valid-file';
+import { FilesService } from 'src/files/files.service';
 
 @Injectable()
 export class ProductosService {
   private readonly logger = new Logger('ProductoService');
+  private defaultLimit: number;
 
 
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(Producto)
     private readonly productoRepository: Repository<Producto>,
     @InjectRepository(ProductoImage)
     private readonly productoImageRepository: Repository<ProductoImage>,
+    @Inject(forwardRef(() => CategoriasService))
     private readonly categoriaService: CategoriasService,
-    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => FilesService))
+    private readonly filesService: FilesService
 
-  ) { }
+
+  ) {
+    this.defaultLimit = this.configService.get<number>('defaultlimit');
+
+  }
 
 
   async create(createProductoDto: CreateProductoDto) {
-    const { images = [], ...detailsPro } = createProductoDto;
-    try {
-      const producto = this.productoRepository.create({
-        ...detailsPro,
-        images: images.map(image =>
-          this.productoImageRepository.create({ url: image }))
-      });
-      return { ...producto, images };
+    const { images = [], categoria, ...detailsPro } = createProductoDto;
+    if (!images.every(x => x.substring(0, 4).trim() === 'http' || x.substring(0, 5).trim() === 'https')) throw new BadRequestException('Image - Url not valid');
+    if (!categoria.id || !isUUID(categoria.id)) throw new BadRequestException('Categoria "id" uuid is expected');
+    const cat = await this.categoriaService.findOne(categoria.id);
+    if (!cat.estado) throw new BadRequestException(`Categoria with id '${categoria.id}' is inactive`)
+    const pro = this.productoRepository.create({
+      categoria, ...detailsPro,
+      images: images.map(image => this.productoImageRepository.create({ url: image }))
+    });
+    await this.productoRepository.save(pro);
+ 
+    return { ...pro, images };
 
-    } catch (error) {
-      this.handleException(error);
-    }
+
   }
 
   async findAll(paginationDto: PaginationDto) {
-    const { limit = 10, offset = 0, orderby = 'id', sordir = 'asc' } = paginationDto;
+
+    const { limit = this.defaultLimit, offset = 0, orderby = 'id', sordir = 'asc', estado = 'all' } = paginationDto;
+    const condition: FindOptionsWhere<Producto> = (estado === 'all' ? {} : JSON.parse(`{"estado": "${(estado === 'active' ? true : false)}" }`))
+    const orderBy: FindOptionsOrder<Producto> = JSON.parse(`{"${orderby}": "${sordir}" }`)
+
     const listPro = await this.productoRepository.find({
       take: limit,
       skip: offset,
-      order: JSON.parse(`{"${orderby}": "${sordir}" }`)
+      order: orderBy,
+      where: condition
+
     })
 
     return listPro.map(({ categoria: { nombre, id }, images, ...detailsPro }) => ({
@@ -60,6 +78,16 @@ export class ProductosService {
         }) : [])
     }))
   }
+  async findProductImage(search: string) {
+    const { images, ...detailsPro } = await this.findOne(search);
+    return {
+      ...detailsPro, images: (images ? images.map(x => {
+        if (!x.external) return `${this.configService.get<String>('HOST_API')}/${validPathImage.products}/` + x.url
+        return x.url;
+      }) : [])
+    }
+  }
+
 
   async findOne(search: string) {
     let producto: Producto;
@@ -99,7 +127,7 @@ export class ProductosService {
           nombre: categoria
         }
       },
-      relations:{ categoria:true, images: true}
+      relations: { categoria: true, images: true }
     });
     return pro.map(({ categoria: { nombre, id }, images, ...detailsPro }) => ({
       ...detailsPro,
@@ -114,27 +142,28 @@ export class ProductosService {
 
 
   async update(id: string, updateProductoDto: UpdateProductoDto) {
+    let { images = [], categoria, ...categoriesDetails } = updateProductoDto;
+    if (!images.every(x => x.substring(0, 4).trim() === 'http' || x.substring(0, 5).trim() === 'https')) throw new BadRequestException('Image - Url not valid');
+    const proActual = await this.findOne(id);
     if (updateProductoDto.id) updateProductoDto.id = id;
-    const { images, ...categoriesDetails } = updateProductoDto;
-
-    let { categoria } = updateProductoDto;
-    const producto = await this.findOne(id);
     if (categoria) {
+      if (!categoria.id || !isUUID(categoria.id)) throw new BadRequestException('Categoria "id" uuid is expected');
       const { id, nombre } = await this.categoriaService.findOne(categoria.id);
-      updateProductoDto.categoria = { id, nombre } as Categoria;
+      categoria = { id, nombre } as Categoria;
     }
-    try {
-      if( images ) {
-        await this.productoImageRepository.delete({producto:{ id } });
+    const pro = await this.productoRepository.preload({ id, ...categoriesDetails })
+    if (images.length) {
+      await this.productoImageRepository.delete({ producto: { id } });
+      if (proActual.images.length !== 0) {
+        const internalImages: string[] = proActual.images.filter(img => !img.external).map(img => img.url)
+        this.filesService.deleteAllImage(internalImages, validPathImage.products);
       }
-      await this.productoRepository.update({ id }, {
-        ...updateProductoDto, images:
-        images.map( image => this.productoImageRepository.create({ url: image }) )
-      })
-      return { ...producto, ...updateProductoDto };
-    } catch (error) {
-      this.handleException(error);
+      pro.images = images.map((image) => this.productoImageRepository.create({ url: image, external: true }))
     }
+    await this.productoRepository.save(pro)
+
+    return { ...categoriesDetails, images, categoria };
+
   }
 
   async remove(id: string) {
@@ -143,13 +172,29 @@ export class ProductosService {
     return { message: `Producto with id ${id} deleted successfully` };
 
   }
-  private handleException(error: any) {
 
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
+  public async addImage(images: string, idPro: string) {
+    try {
+      const imagesCat = this.productoImageRepository.create({ url: images, producto: { id: idPro } })
+      await this.productoImageRepository.save(imagesCat);
+      return true;
+    } catch (error) {
+      console.log(error)
+      return false;
+    }
+  }
 
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
+
+  async findProductoActive(id: string) {
+    return await this.productoRepository.findOne({
+      where: {
+        categoria: {
+          id
+        },
+        estado: true
+
+      }
+    });
   }
 
 }

@@ -3,8 +3,11 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ClientesService } from './clientes.service';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { CurrentPathInterface } from 'src/common/interfaces/current-path.interface';
+import { FilterPagination } from 'src/common/decorators/filter-pagination-decorator';
+import { ParseFilterAll } from 'src/common/pipes/parse-filter-all.pipe';
 
-@Controller('clientes')
+@Controller(CurrentPathInterface.cliente)
 export class ClientesController {
   constructor(private readonly clientesService: ClientesService) {}
 
@@ -14,7 +17,7 @@ export class ClientesController {
   }
 
   @Get()
-  findAll(@Query() paginationDto:PaginationDto ) {
+  findAll(@FilterPagination(ParseFilterAll) paginationDto: PaginationDto) {
     return this.clientesService.findAll(paginationDto);
   }
   

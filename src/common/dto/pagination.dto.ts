@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsIn, IsNumber, IsOptional, IsPositive, IsString, Min } from "class-validator";
+import { IsIn, IsNumber, IsObject, IsOptional, IsPositive, IsString, Min } from "class-validator";
 
 export class PaginationDto {
 
@@ -18,12 +18,14 @@ export class PaginationDto {
 
 
     @IsString()
-    @IsIn(['nombre','id'])
     @IsOptional()
     orderby ?: string;
 
     @IsString()
-    @IsIn(['asc','desc'])
     @IsOptional()
+    @IsIn(['asc','desc'])
     sordir ?: string
+
+    @IsObject()
+    estado ?:Object
 }

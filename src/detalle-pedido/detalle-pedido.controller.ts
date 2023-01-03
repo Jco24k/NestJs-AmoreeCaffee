@@ -3,8 +3,12 @@ import { ParseUUIDPipe } from '@nestjs/common/pipes';
 import { DetallePedidoService } from './detalle-pedido.service';
 import { CreateDetallePedidoDto } from './dto/create-detalle-pedido.dto';
 import { UpdateDetallePedidoDto } from './dto/update-detalle-pedido.dto';
+import { CurrentPathInterface } from 'src/common/interfaces/current-path.interface';
+import { FilterPagination } from 'src/common/decorators/filter-pagination-decorator';
+import { ParseFilterAll } from 'src/common/pipes/parse-filter-all.pipe';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
-@Controller('detpedido')
+@Controller(CurrentPathInterface.detallePedido)
 export class DetallePedidoController {
   constructor(private readonly detallePedidoService: DetallePedidoService) {}
 
@@ -14,8 +18,8 @@ export class DetallePedidoController {
   }
 
   @Get()
-  findAll() {
-    return this.detallePedidoService.findAll();
+  findAll(@FilterPagination(ParseFilterAll) paginationDto: PaginationDto) {
+    return this.detallePedidoService.findAll(paginationDto);
   }
 
   @Get(':idcabpedido/:idproducto')

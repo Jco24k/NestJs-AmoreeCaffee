@@ -19,6 +19,10 @@ import { join } from 'path';
 import { SeedModule } from './seed/seed.module';
 import { ProductoImageModule } from './producto-image/producto-image.module';
 import { CategoriaImageModule } from './categoria-image/categoria-image.module';
+import { Employee } from './employees/entities/employee.entity';
+import { EmployeesModule } from './employees/employees.module';
+import { RolesModule } from './roles/roles.module';
+import { UserModule } from './user/user.module';
 @Module({
   imports: [
     ConfigModule.forRoot( 
@@ -28,8 +32,14 @@ import { CategoriaImageModule } from './categoria-image/categoria-image.module';
       }
     ),
     DatabaseModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
     CommonModule,
     AuthModule,
+    EmployeesModule,
+    RolesModule,
+    UserModule,
     ClientesModule,
     CategoriasModule,
     ProductosModule,
@@ -38,14 +48,9 @@ import { CategoriaImageModule } from './categoria-image/categoria-image.module';
     ComprobanteModule,
     DetallePedidoModule,
     FilesModule,
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public'),
-      //SI EN LA CARPETA PUBLIC HAY IMAGENES SE PUEDEN ACCEDER
-    //MEIDANTE LA URL EJEMPLO: http://localhost:3000/products/1473809-00-A_1_2000.jpg
-    }),
-    SeedModule,
     ProductoImageModule,
     CategoriaImageModule,
+    SeedModule,
   ]
 })
 export class AppModule {}

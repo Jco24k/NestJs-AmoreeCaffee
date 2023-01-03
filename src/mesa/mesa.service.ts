@@ -1,38 +1,45 @@
 import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { validate as isUUID } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsOrder, FindOptionsWhere, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { Mesa } from './entities/mesa.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MesaService {
   private readonly logger = new Logger('MesasService');
+  private defaultLimit: number;
 
   constructor(
     @InjectRepository(Mesa)
-    private readonly mesaRepository: Repository<Mesa>
-  ) {}
-  
+    private readonly mesaRepository: Repository<Mesa>,
+    private readonly configService: ConfigService,
+  ) {
+    this.defaultLimit = this.configService.get<number>('defaultlimit');
 
-  async create(createMesaDto: CreateMesaDto) {
-    try {
-      const Mesa = this.mesaRepository.create(createMesaDto);
-      return await this.mesaRepository.save(Mesa);
-
-    } catch (error) {
-      this.handleException(error);
-    }
   }
 
-  async findAll( paginationDto: PaginationDto ) {
-    const { limit = 10, offset = 0 , orderby = 'id' , sordir = 'asc' } = paginationDto;
+
+  async create(createMesaDto: CreateMesaDto) {
+    const table = this.mesaRepository.create(createMesaDto);
+    return await this.mesaRepository.save(table);
+
+
+  }
+
+  async findAll(paginationDto: PaginationDto) {
+    const { limit = this.defaultLimit, offset = 0, orderby = 'id', sordir = 'asc', estado = 'all' } = paginationDto;
+    const condition: FindOptionsWhere<Mesa> = (estado === 'all' ? {} : { estado: (estado === 'active' ? true : false) })
+    const orderBy: FindOptionsOrder<Mesa> = JSON.parse(`{"${orderby}": "${sordir}" }`)
+
     return await this.mesaRepository.find({
       take: limit,
       skip: offset,
-      order: JSON.parse( `{"${orderby}": "${sordir}" }`)
+      order: orderBy,
+      where: condition
     })
   }
 
@@ -53,31 +60,19 @@ export class MesaService {
 
   async update(id: string, updateMesaDto: UpdateMesaDto) {
     const mesa = await this.findOne(id);
-    if(updateMesaDto.id) updateMesaDto.id = id;
-    try {
-      await this.mesaRepository.update({id},{
-        ...updateMesaDto
-      })
-      return { ...mesa, ...updateMesaDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    if (updateMesaDto.id) updateMesaDto.id = id;
+    await this.mesaRepository.update({ id }, {
+      ...updateMesaDto
+    })
+    return { ...mesa, ...updateMesaDto };
+
   }
 
   async remove(id: string) {
-    const mesa = await this.findOne(id);
-    await this.mesaRepository.update({id},{estado:false});
+    await this.findOne(id);
+    await this.mesaRepository.update({ id }, { estado: false });
     return { message: `Mesa with id ${id} deleted successfully` };
 
   }
 
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
-  }
-  
 }

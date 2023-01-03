@@ -1,9 +1,8 @@
 
 
-export enum validRoles{
+export enum ValidRoles{
     admin = 'admin',
-    comprador = 'comprador',
-    vendedor = 'vendedor',
-    facturador = 'facturador'
+    superUser = 'super-user',
+    user = 'user'
 
 }
