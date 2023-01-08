@@ -20,8 +20,8 @@ export class UserRoleGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const validRoles: string[] = this.reflector.get(META_ROLES, context.getHandler());
-    const { userSearch, employeeSerach }: ValidFindOne = this.reflector.get(END_POINT_VALIDATE, context.getHandler());
-    const listVerificar = [userSearch, employeeSerach]
+    const { userSearch, employeeSearch }: ValidFindOne = this.reflector.get(END_POINT_VALIDATE, context.getHandler());
+    const listVerificar = [userSearch, employeeSearch]
     if (!validRoles || validRoles.length == 0) return true;
     const req = context.switchToHttp().getRequest();
     const user = req.user as User;
@@ -29,10 +29,10 @@ export class UserRoleGuard implements CanActivate {
     for (const role of user.roles) if (validRoles.includes(role.nombre)) return true;
     if (listVerificar.some(x => x)) {
       const { id } = req.params
-      if (id !== user.id && listVerificar[0]) throw new UnauthorizedException(`User ${id} need a valid role: admin`);
-      if (id !== user.empleado.id && listVerificar[1]) throw new UnauthorizedException(`Employee ${id} need a valid role: admin`);
+      if (id !== user.id && listVerificar[0]) throw new UnauthorizedException(`User ${user.id} need a valid role: admin`);
+      if (id !== user.empleado.id && listVerificar[1]) throw new UnauthorizedException(`Employee ${user.empleado.id} need a valid role: admin`);
       return true
     }
-    throw new ForbiddenException(`User ${user.username} need a valid role: ${validRoles}`)
+    throw new ForbiddenException(`User ${user.id} need a valid role: ${validRoles}`)
   }
 }

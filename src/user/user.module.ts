@@ -18,6 +18,7 @@ import { RolesService } from 'src/roles/roles.service';
     forwardRef(() => RolesModule),
     forwardRef(() => EmployeesModule),
     forwardRef(() => AuthModule), 
+    forwardRef(()=> AuthModule)
 
 
   ],

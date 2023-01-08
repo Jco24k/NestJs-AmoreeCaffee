@@ -29,15 +29,12 @@ export class ClientesService {
   async create(createClienteDto: CreateClienteDto) {
     const { password, ...clienteData } = createClienteDto
 
-    try {
-      const cliente = this.clienteRepository.create({
-        ...clienteData,
-        password: bcrypt.hashSync(password, 10)
-      });
-      return await this.clienteRepository.save(cliente);
-    } catch (error) {
-      this.handleException(error);
-    }
+    const cliente = this.clienteRepository.create({
+      ...clienteData,
+      password: bcrypt.hashSync(password, 10)
+    });
+    return await this.clienteRepository.save(cliente);
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -71,15 +68,12 @@ export class ClientesService {
   async update(id: string, updateClienteDto: UpdateClienteDto) {
     if (updateClienteDto.id) updateClienteDto.id = id;
     const cli = await this.findOne(id);
-    try {
-      if (updateClienteDto.password) updateClienteDto.password = bcrypt.hashSync(updateClienteDto.password, 10)
-      await this.clienteRepository.update({ id }, {
-        ...updateClienteDto
-      })
-      return { ...cli, ...updateClienteDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    if (updateClienteDto.password) updateClienteDto.password = bcrypt.hashSync(updateClienteDto.password, 10)
+    await this.clienteRepository.update({ id }, {
+      ...updateClienteDto
+    })
+    return { ...cli, ...updateClienteDto };
+
   }
 
   async remove(id: string) {
@@ -89,12 +83,4 @@ export class ClientesService {
 
   }
 
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
-  }
 }

@@ -13,8 +13,8 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([Cliente]),
-    forwardRef(() => DetallePedidoModule),
     forwardRef(()=> AuthModule)
+
   ],
   exports: [
     TypeOrmModule, ClientesService

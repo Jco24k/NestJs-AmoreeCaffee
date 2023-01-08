@@ -10,7 +10,6 @@ export class QueryFailedFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    console.log('exception Query')
     const code = exception['code'];
     const status = (code === '23505' ? HttpStatus.BAD_REQUEST : HttpStatus.INTERNAL_SERVER_ERROR)
     const message = (code === '23505' ? exception['detail'] :'Unexpected error, check server logs' )

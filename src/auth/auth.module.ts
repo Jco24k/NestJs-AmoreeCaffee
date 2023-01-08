@@ -24,9 +24,9 @@ import { UserModule } from '../user/user.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         return {
-          secret: configService.get('JWT_SECRET'), //LLAVE SECRETA NADIE DEBE SABER
+          secret: configService.get('JWT_SECRET'), 
           signOptions: {
-            expiresIn: '2h' //PARA QUE EXPIRE EN 2H
+            expiresIn: '2h' 
           }
         }
       }

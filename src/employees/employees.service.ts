@@ -28,12 +28,9 @@ export class EmployeesService {
 
 
   async create(createEmployeeDto: CreateEmployeeDto) {
-    try {
-      const emp = this.employeeRepository.create(createEmployeeDto);
-      return await this.employeeRepository.save(emp);
-    } catch (error) {
-      this.handleException(error);
-    }
+    const emp = this.employeeRepository.create(createEmployeeDto);
+    return await this.employeeRepository.save(emp);
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -54,7 +51,7 @@ export class EmployeesService {
     if (isUUID(id)) {
       employee = await this.employeeRepository.findOneBy({ id: id });
     }
-    if (!employee) throw new NotFoundException(`Employee with id or dni ${id} not found`);
+    if (!employee) throw new NotFoundException(`Employee with id ${id} not found`);
     return employee;
   }
 
@@ -62,29 +59,18 @@ export class EmployeesService {
   async update(id: string, updateEmployeeDto: UpdateEmployeeDto) {
     if (updateEmployeeDto.id) updateEmployeeDto.id = id;
     const employee = await this.findOne(id);
-    try {
-      await this.employeeRepository.update({ id }, { ...updateEmployeeDto });
-      return { ...employee, ...updateEmployeeDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    await this.employeeRepository.update({ id }, { ...updateEmployeeDto });
+    return { ...employee, ...updateEmployeeDto };
+
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    const user = await this.userService.findUserOrRolesActive(id,'empleado')
+    const user = await this.userService.findUserOrRolesActive(id, 'empleado')
     if (user) throw new InternalServerErrorException(`The Employee with id ${id} cannot be deleted because it is in use.`)
     await this.employeeRepository.update({ id }, { estado: false });
     return { message: `Employee with id ${id} deleted successfully` };
 
-  }
-
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    throw new InternalServerErrorException('Unexpected error, check server logs');
   }
 
 }

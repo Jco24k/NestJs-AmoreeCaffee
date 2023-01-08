@@ -15,7 +15,6 @@ export const FilterPagination = createParamDecorator(
             .toString()
             .replaceAll(' ', '')
             .split('/').filter((x: string) => x.length)[1]
-        // console.log(Object.keys(PaginationDto.arguments))
         if (!Object.keys(query).length) return {};
         const attributePagination = ['limit', 'offset', 'orderby', 'sordir','estado'];
         const atributeQuery: string[] = Object.keys(query)

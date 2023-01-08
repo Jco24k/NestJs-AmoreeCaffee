@@ -5,6 +5,7 @@ import { Comprobante } from './entities/comprobante.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CabeceraPedidoModule } from 'src/cabecera-pedido/cabecera-pedido.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ComprobanteController],
@@ -13,6 +14,7 @@ import { ConfigModule } from '@nestjs/config';
     ConfigModule,
     TypeOrmModule.forFeature([ Comprobante]),
     forwardRef(() => CabeceraPedidoModule),
+    forwardRef(()=> AuthModule)
 
   ],
   exports: [

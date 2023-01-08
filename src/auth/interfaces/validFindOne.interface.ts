@@ -2,5 +2,5 @@
 
 export interface ValidFindOne{
     userSearch:boolean;
-    employeeSerach: boolean 
+    employeeSearch: boolean 
 }

@@ -13,7 +13,7 @@ export const EnvConfiguration = () => ({
     defaultlimit: +process.env.DEFAULT_LIMIT || 10 ,
     max_file_size: +process.env.MAX_FILE_SIZE ||5,
     max_file_counts: +process.env.MAX_FILE_COUNTS || 5,
-    correo_seed: process.env.CORREO_SEED,
+    user_seed: process.env.USERNAME_SEED,
     password_seed: process.env.PASSWORD_SEED,
 })
 // ()=({}) //UNA FUNCION QUE RETORNA UN OBJETO 

@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ProductoImageModule } from 'src/producto-image/producto-image.module';
 import { ProductoImage } from './entities/producto-image.entity';
 import { FilesModule } from 'src/files/files.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ProductosController],
@@ -20,6 +21,7 @@ import { FilesModule } from 'src/files/files.module';
     forwardRef(() => DetallePedidoModule),
     forwardRef(()=> ProductoImageModule),
     forwardRef(()=> FilesModule),
+    forwardRef(()=> AuthModule)
 
 
   ],

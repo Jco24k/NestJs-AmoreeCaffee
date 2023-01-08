@@ -3,21 +3,22 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsEmail, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, IsString, Matches, MaxLength, MinLength, isObject } from "class-validator";
 import { Role } from "../../roles/entities/role.entity";
 import { Employee } from "src/employees/entities/employee.entity";
+import { v4 as uuid } from 'uuid';
 
 
 export class CreateUserDto {
-    
+
     @ApiProperty({
-        description: 'User - "id_employee"',
-        nullable: false,
-        type: String,
-        minLength: 1
+        example: { id: uuid() },
+        description: '"categoria"',
+        type: () => Employee,
+        nullable: false
     })
     @IsNotEmptyObject()
     @IsObject()
     @Type(() => Employee)
     empleado: Employee;
-    
+
     @ApiProperty({
         description: 'User - "username"',
         nullable: false,
@@ -42,17 +43,14 @@ export class CreateUserDto {
     @IsString()
     @MinLength(6)
     @MaxLength(50)
-    @Matches(
-        /(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-        message: 'The password must have a Uppercase, lowercase letter and a number'
-    })
     password: string;
 
-    
+
     @ApiProperty({
         description: 'User - "roles"',
         type: [String],
-        nullable: false
+        nullable: false,
+        example: [{ id: uuid() }]
     })
     @IsArray()
     @IsNotEmpty()
@@ -60,9 +58,10 @@ export class CreateUserDto {
 
 
     @ApiProperty({
+        example: true,
         description: 'User - "estado"',
         type: Boolean,
-        default:true
+        default: true
     })
     @IsBoolean()
     @IsOptional()

@@ -5,6 +5,7 @@ import { Mesa } from './entities/mesa.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CabeceraPedidoModule } from 'src/cabecera-pedido/cabecera-pedido.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [MesaController],
@@ -12,6 +13,8 @@ import { ConfigModule } from '@nestjs/config';
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([Mesa]),
+    forwardRef(()=> AuthModule)
+
   ],
   exports: [
     TypeOrmModule, MesaService

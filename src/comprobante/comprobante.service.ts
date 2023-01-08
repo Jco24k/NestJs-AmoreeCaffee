@@ -28,13 +28,8 @@ export class ComprobanteService {
 
   async create(createComprobanteDto: CreateComprobanteDto) {
     const { estado, ...detailsCab } = await this.cabeceraPedidoService.findOne(createComprobanteDto.cabeceraPedido.id);
-    try {
-      const Comprobante = this.comprobanteRepository.create(createComprobanteDto);
-      return { ...(await this.comprobanteRepository.save(Comprobante)), cabeceraPedido: detailsCab };
-
-    } catch (error) {
-      this.handleException(error);
-    }
+    const Comprobante = this.comprobanteRepository.create(createComprobanteDto);
+    return { ...(await this.comprobanteRepository.save(Comprobante)), cabeceraPedido: detailsCab };
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -74,14 +69,11 @@ export class ComprobanteService {
     if (cabeceraPedido) {
       updateComprobanteDto.cabeceraPedido = await this.cabeceraPedidoService.findOne(cabeceraPedido.id);
     }
-    try {
-      await this.comprobanteRepository.update({ id }, {
-        ...updateComprobanteDto
-      })
-      return { ...comprobante, ...updateComprobanteDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    await this.comprobanteRepository.update({ id }, {
+      ...updateComprobanteDto
+    })
+    return { ...comprobante, ...updateComprobanteDto };
+
   }
 
   async remove(id: string) {
@@ -93,11 +85,4 @@ export class ComprobanteService {
 
   }
 
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    throw new InternalServerErrorException('Unexpected error, check server logs');
-  }
 }

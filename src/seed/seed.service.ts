@@ -9,7 +9,7 @@ import { Mesa } from 'src/mesa/entities/mesa.entity';
 import { Producto } from 'src/productos/entities/producto.entity';
 import { DataSource, Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { EmailSeed } from './dto/email-seed.dto';
+import { UserSeed } from './dto/email-seed.dto';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 import * as format from 'pg-format';
@@ -52,10 +52,10 @@ export class SeedService {
     private readonly dataSource: DataSource,
   ) { }
 
-  async seedExecute(emailSeed: EmailSeed) {
-    const registerCant = { clientes: 100, empleados: 100, categorias: 100, mesas: 100, productos: 100, cabeceraPedido: 2000, cantidadDetalle: 5 }
-    const userValid: EmailSeed = { correo: this.configService.get<string>("CORREO_SEED"), password: this.configService.get<string>("PASSWORD_SEED") };
-    if (emailSeed.correo !== userValid.correo || emailSeed.password !== userValid.password) throw new UnauthorizedException('Credentials are not valid');
+  async seedExecute(userSeed: UserSeed) {
+    const registerCant = { clientes: 10_000, empleados: 10_000, categorias: 10_000, mesas: 10_000, productos: 10_000, cabeceraPedido: 10_000, cantidadDetalle: 2 }
+    const userValid: UserSeed = { username: this.configService.get<string>("USERNAME_SEED"), password: this.configService.get<string>("PASSWORD_SEED") };
+    if (userSeed.username !== userValid.username || userSeed.password !== userValid.password) throw new UnauthorizedException('Credentials are not valid');
     console.time("ELIMINACION");
     await this.deleteTables();
     console.timeEnd("ELIMINACION");
@@ -65,7 +65,7 @@ export class SeedService {
       this.insertEmployees(registerCant.empleados), this.inserRoles()])
       console.timeEnd("inicio tablas primarias : " + registerCant.clientes);
       console.time("inicio empleados : " + registerCant.empleados);
-      await this.insertUsers(registerCant.empleados)
+      await this.insertUsers(registerCant.empleados, userSeed)
       console.timeEnd("inicio empleados : " + registerCant.empleados);
 
       await this.dataSource.query(
@@ -270,7 +270,7 @@ export class SeedService {
     )
   }
 
-  private async insertUsers(cant: number) {
+  private async insertUsers(cant: number, emailSeed: UserSeed) {
     const employees = await this.employeeRepository.find();
     const roles = await this.roleRepository.find();
     const password = bcrypt.hashSync(`newPassWord_12312`, 10);
@@ -279,30 +279,36 @@ export class SeedService {
         SeedFormatSql.users,
         Array.from(
           new Array(cant),
-          (value, index) => ([
-            faker.internet.userName(
-              faker.name.fullName()
-                .replaceAll(' ', '_')
-                .replaceAll("'", '')
-              , index + ''),
-            password,
-            employees.at(index).id
-          ]
-          )
+          (value, index) => {
+            if (cant - 1 === index) return [emailSeed.username,bcrypt.hashSync(emailSeed.password, 10), employees.at(index).id]
+            else return [
+              faker.internet.userName(
+                faker.name.fullName()
+                  .replaceAll(' ', '_')
+                  .replaceAll("'", '')
+                , index + ''),
+              password,
+              employees.at(index).id
+            ]
+          }
+
         )
       )
     )
     const users = await this.userRepository.find()
+    const usersFilter = users.filter(x => x.username !== emailSeed.username)
+    const usersRolesRegister = Array.from(
+      new Array(cant - 1),
+      (value, index) => ([
+        usersFilter.at(index).id,
+        roles.at(Math.floor(Math.random() * roles.length)).id
+      ])
+    )
+    usersRolesRegister.push([users.find(x => x.username === emailSeed.username).id, roles.find(x => x.nombre === 'admin').id])
     await this.dataSource.query(
       format(
         SeedFormatSql.users_roles,
-        Array.from(
-          new Array(cant),
-          (value, index) => ([
-            users.at(index).id,
-            roles.at(Math.floor(Math.random() * roles.length)).id
-          ])
-        )
+        usersRolesRegister
       )
     )
   }

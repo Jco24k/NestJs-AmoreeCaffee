@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { CategoriaImageModule } from 'src/categoria-image/categoria-image.module';
 import { CategoriaImage } from './entities/categoria-image.entity';
 import { FilesModule } from 'src/files/files.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [CategoriasController],
@@ -17,7 +18,8 @@ import { FilesModule } from 'src/files/files.module';
     TypeOrmModule.forFeature([Categoria, CategoriaImage]),
     forwardRef(() => ProductosModule),
     forwardRef(() => CategoriaImageModule),
-    forwardRef(() => FilesModule)
+    forwardRef(() => FilesModule),
+    forwardRef(()=> AuthModule)
     
   ],
   exports: [

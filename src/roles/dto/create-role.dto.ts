@@ -5,10 +5,10 @@ export class CreateRoleDto {
 
     
     @ApiProperty({
-        description: 'Role nombre',
+        example: 'admin',
+        description: '"nombre"',
         nullable: false,
         type: String,
-        minLength: 1
     })
     @IsString()
     @MinLength(1)
@@ -17,9 +17,10 @@ export class CreateRoleDto {
 
 
     @ApiProperty({
-        description: 'Role estado',
-        type: Boolean,
-        default:true
+        example: true,
+        description: '"estado"',
+        default: true,
+        type: Boolean
     })
     @IsOptional()
     @IsBoolean()

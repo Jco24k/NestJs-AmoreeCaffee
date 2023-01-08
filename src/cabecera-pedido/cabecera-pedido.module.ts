@@ -8,6 +8,7 @@ import { ClientesModule } from 'src/clientes/clientes.module';
 import { MesaModule } from 'src/mesa/mesa.module';
 import { ComprobanteModule } from 'src/comprobante/comprobante.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [CabeceraPedidoController],
@@ -19,6 +20,7 @@ import { ConfigModule } from '@nestjs/config';
     forwardRef(() => ClientesModule),
     forwardRef(() => MesaModule),
     forwardRef(() => ComprobanteModule),
+    forwardRef(()=> AuthModule)
 
   ],
   exports: [

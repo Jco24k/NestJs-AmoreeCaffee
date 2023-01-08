@@ -6,6 +6,7 @@ import { ProductoImageController } from './producto-image.controller';
 import { ProductoImageService } from './producto-image.service';
 import { ProductosModule } from 'src/productos/productos.module';
 import { FilesModule } from 'src/files/files.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ProductoImageController],
@@ -13,7 +14,8 @@ import { FilesModule } from 'src/files/files.module';
   imports: [
     ConfigModule,
     forwardRef(() => ProductosModule),
-    forwardRef(() => FilesModule)
+    forwardRef(() => FilesModule),
+    forwardRef(()=> AuthModule)
   ],
   exports: [
     ProductoImageService

@@ -16,9 +16,14 @@ docker-compose up -d
 
 6. Levantar: ```npm run start:dev```
 
-7. Ejecutar SEED 
+7. Ejecutar SEED para generar Registros (10 000 cada tabla)
 ```
 http://localhost:3000/api/seed
+```
+- User Seed
+```
+username: 'admin_USER0121354'
+password: '123456'
 ```
 
 

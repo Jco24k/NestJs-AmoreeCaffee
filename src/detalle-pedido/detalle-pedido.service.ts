@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, forwardRef } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CabeceraPedidoService } from 'src/cabecera-pedido/cabecera-pedido.service';
 import { UpdateCabeceraPedidoDto } from 'src/cabecera-pedido/dto/update-cabecera-pedido.dto';
@@ -36,42 +36,38 @@ export class DetallePedidoService {
   async create(createDetallePedidoDto: CreateDetallePedidoDto) {
     const { producto, cabeceraPedido } = createDetallePedidoDto;
     const cabPedido = await this.cabeceraPedidoService.findOne(cabeceraPedido.id);
-    if (!cabPedido.estado) throw new InternalServerErrorException(`DetallePedido with producto id ${cabeceraPedido.id} is inactive`)
+    if (!cabPedido.estado) throw new BadRequestException(`DetallePedido with producto id ${cabeceraPedido.id} is inactive`)
     const pro = await this.productoService.findOne(producto.id);
-    if (!pro.estado) throw new InternalServerErrorException(`DetallePedido with producto id ${producto.id} is inactive`)
+    if (!pro.estado) throw new BadRequestException(`DetallePedido with producto id ${producto.id} is inactive`)
 
-    try {
-      const det = this.detallePedidoRepository.create(createDetallePedidoDto);
-      const detalleInsert = await this.detallePedidoRepository.save(det);
-      const listDetalles = await this.detallePedidoRepository.find({
-        where: {
-          cabeceraPedidoId: detalleInsert.cabeceraPedidoId
-        }
-      })
-      let total: number = 0;
-      listDetalles.forEach((detalle) => { total += +detalle.subtotal; })
-      await this.cabeceraPedidoService.update(cabeceraPedido.id, { total } as UpdateCabeceraPedidoDto)
 
-      return detalleInsert;
-    } catch (error) {
-      console.log(error)
-      this.handleException(error);
-    }
+    const det = this.detallePedidoRepository.create(createDetallePedidoDto);
+    const detalleInsert = await this.detallePedidoRepository.save(det);
+    const listDetalles = await this.detallePedidoRepository.find({
+      where: {
+        cabeceraPedidoId: detalleInsert.cabeceraPedidoId
+      }
+    })
+    let total: number = 0;
+    listDetalles.forEach((detalle) => { total += +detalle.subtotal; })
+    await this.cabeceraPedidoService.update(cabeceraPedido.id, { total } as UpdateCabeceraPedidoDto)
+
+    return detalleInsert;
+
   }
 
   async findAll(paginationDto: PaginationDto) {
     const { limit = this.defaultLimit, offset = 0, orderby = 'id', sordir = 'asc', estado = 'all' } = paginationDto;
     const condition: FindOptionsWhere<DetallePedido> = (estado === 'all' ? {} : JSON.parse(`{"estado": "${(estado === 'active' ? true : false)}" }`))
-    const orderBy: FindOptionsOrder<DetallePedido> = JSON.parse(`{${
-      (orderby === 'id'? ` "cabeceraPedidoId": "${sordir}"`: `"${ orderby}":"${sordir}"`)
-    }}`)
+    const orderBy: FindOptionsOrder<DetallePedido> = JSON.parse(`{${(orderby === 'id' ? ` "cabeceraPedidoId": "${sordir}"` : `"${orderby}":"${sordir}"`)
+      }}`)
 
-  
+
     return await this.detallePedidoRepository.find({
       take: limit,
       skip: offset,
       order: orderBy,
-      where:condition,
+      where: condition,
       relations: {
         cabeceraPedido: true, producto: true
       }
@@ -113,14 +109,11 @@ export class DetallePedidoService {
     updateDetallePedidoDto.producto.id = productoId;
     updateDetallePedidoDto.subtotal =
       (precio ? precio : det.precio) * (cantidad ? cantidad : det.cantidad);
-    try {
-      await this.detallePedidoRepository.update({ cabeceraPedidoId, productoId }, {
-        ...updateDetallePedidoDto
-      })
-      return { ...det, ...updateDetallePedidoDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    await this.detallePedidoRepository.update({ cabeceraPedidoId, productoId }, {
+      ...updateDetallePedidoDto
+    })
+    return { ...det, ...updateDetallePedidoDto };
+
   }
 
   async remove(cabeceraPedidoId: string, productoId: string) {
@@ -129,16 +122,6 @@ export class DetallePedidoService {
     return { message: `DetallePedido deleted successfully` };
 
   }
-
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
-  }
-
 
   async createAll(createDetallePedidoDtos: CreateDetallePedidoDto[]) {
     const listIdPros = createDetallePedidoDtos.map(({ producto }) => producto.id)
@@ -156,7 +139,7 @@ export class DetallePedidoService {
   async findDetallePedidoActive(id: string) {
     return await this.detallePedidoRepository.findOne({
       where: {
-        cabeceraPedido: { 
+        cabeceraPedido: {
           id
         },
         estado: true

@@ -17,6 +17,7 @@ import { UserModule } from 'src/user/user.module';
      forwardRef(() => RolesModule),
      forwardRef(() => AuthModule),
      forwardRef(() => UserModule),
+     forwardRef(()=> AuthModule)
 
 
   ],

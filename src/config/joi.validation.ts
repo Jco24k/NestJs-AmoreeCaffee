@@ -10,7 +10,6 @@ export const JoiValidationSchema = Joi.object({
     PORT: Joi.number().default(3005),
     DEFAULT_LIMIT: Joi.number().default(10),
     JWT_SECRET: Joi.required(),
-    CORREO_SEED: Joi.required(),    
+    USERNAME_SEED: Joi.required(),
     PASSWORD_SEED: Joi.required(),
-
 }) 

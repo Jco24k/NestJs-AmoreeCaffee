@@ -19,7 +19,6 @@ export class AuthService {
   }
   async auth(authUserDto: AuthUserDto) {
     const { password, username } = authUserDto;
-    // VERIFICAR EN BD 
     const user = await this.userModel.findOne(
       {
         where: { username: username },
@@ -34,7 +33,7 @@ export class AuthService {
     }
 
     return {
-      ...user,//ESPARCIR LASVARIABLES DEL USUARIO
+      ...user,
       token: this.getJwtToken({ id: user.id })
     };
   }

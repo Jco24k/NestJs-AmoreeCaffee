@@ -37,16 +37,13 @@ export class CategoriasService {
   async create(createCategoriaDto: CreateCategoriaDto) {
     const { images = [], ...categoriesDetails } = createCategoriaDto;
     if (!images.every(x => x.substring(0, 4).trim() === 'http' || x.substring(0, 5).trim() === 'https')) throw new BadRequestException('Image - Url not valid');
-    try {
-      const categoria = this.categoriaRepository.create({
-        ...categoriesDetails, images: images.map(image => this.categoriaImageRepository.create({ url: image }))
-      });
-      await this.categoriaRepository.save(categoria);
+    const categoria = this.categoriaRepository.create({
+      ...categoriesDetails, images: images.map(image => this.categoriaImageRepository.create({ url: image }))
+    });
+    await this.categoriaRepository.save(categoria);
 
-      return { ...categoria, images }
-    } catch (error) {
-      this.handleException(error);
-    }
+    return { ...categoria, images }
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -118,22 +115,18 @@ export class CategoriasService {
     const catActual = await this.findOne(id);
     if (updateCategoriaDto.id) updateCategoriaDto.id = id;
     const cat = await this.categoriaRepository.preload({ id, ...categoriesDetails })
-    try {
-      if (images.length) {
-        await this.categoriaImageRepository.delete({ categoria: { id } });
-        if (catActual.images.length !== 0) {
-          const internalImages: string[] = catActual.images.filter(img => !img.external).map(img => img.url)
-          this.filesService.deleteAllImage(internalImages, validPathImage.categories);
-        }
-        cat.images = images.map((image) => this.categoriaImageRepository.create({ url: image, external: true }))
+    if (images.length) {
+      await this.categoriaImageRepository.delete({ categoria: { id } });
+      if (catActual.images.length !== 0) {
+        const internalImages: string[] = catActual.images.filter(img => !img.external).map(img => img.url)
+        this.filesService.deleteAllImage(internalImages, validPathImage.categories);
       }
-
-      await this.categoriaRepository.save(cat)
-      return await this.findCategoriaImage(id)
-    } catch (error) {
-      console.log(error)
-      this.handleException(error);
+      cat.images = images.map((image) => this.categoriaImageRepository.create({ url: image, external: true }))
     }
+
+    await this.categoriaRepository.save(cat)
+    return await this.findCategoriaImage(id)
+
   }
 
   async remove(id: string) {
@@ -146,14 +139,6 @@ export class CategoriasService {
 
   }
 
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
-  }
 
   public async addImage(images: string, idCat: string) {
     try {

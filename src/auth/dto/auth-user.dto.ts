@@ -4,6 +4,7 @@ import { IsNotEmpty, IsString, MinLength } from "class-validator";
 export class AuthUserDto {
 
     @ApiProperty({
+        example: 'nuevo_usuario',
         description: 'User "username" (unique)',
         nullable: false,
         minLength: 6

@@ -1,4 +1,5 @@
 import { ExceptionFilter, Catch, ArgumentsHost, HttpStatus, Logger } from '@nestjs/common';
+import { InternalServerErrorException, UnauthorizedException } from '@nestjs/common/exceptions';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -8,7 +9,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const response = ctx.getResponse();
         const request = ctx.getRequest();
 
-        console.log('exception all')
         this.logger.error(exception)
         response
             .status(HttpStatus.INTERNAL_SERVER_ERROR)

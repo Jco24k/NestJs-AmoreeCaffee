@@ -6,6 +6,7 @@ import { PhoneValid } from "../../common/validator/phone_valid.validator";
 export class CreateEmployeeDto {
 
     @ApiProperty({
+        example: 'jesus',
         description: 'Employee nombre',
         nullable: false,
         type: String,
@@ -14,15 +15,15 @@ export class CreateEmployeeDto {
     @IsString()
     @MinLength(1)
     @IsNotEmpty()
-    @Matches(/^[ a-zA-ZñÑáéíóúÁÉÍÓÚ]+$/, { message: 'nombre must contain only letters' })
     nombre: string;
-    
+
     @ApiProperty({
+        example: '963852741',
         description: 'Employee telefono',
         nullable: false,
         type: String,
         minLength: 9,
-        maxLength:9
+        maxLength: 9
     })
     @IsString()
     @IsNotEmpty()
@@ -31,19 +32,21 @@ export class CreateEmployeeDto {
 
 
     @ApiProperty({
+        example: '78945612',
         description: 'Employee dni',
         nullable: false,
         type: String,
         minLength: 8,
-        maxLength:8
+        maxLength: 8
     })
     @IsDniValid('dni', { message: 'dni must be to 8 digits' })
     dni: string;
-    
+
     @ApiProperty({
+        example: true,
         description: 'Employee estado',
         type: Boolean,
-        default:true
+        default: true
     })
     @IsBoolean()
     @IsOptional()

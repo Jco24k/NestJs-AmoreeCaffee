@@ -13,9 +13,10 @@ import { Role } from './entities/role.entity';
   imports: [
     ConfigModule,
     TypeOrmModule.forFeature([Role]),
-     forwardRef(() => UserModule)
+    forwardRef(() => UserModule),
+    forwardRef(() => AuthModule)
 
   ],
-  exports: [TypeOrmModule,RolesService]
+  exports: [TypeOrmModule, RolesService]
 })
-export class RolesModule {}
+export class RolesModule { }

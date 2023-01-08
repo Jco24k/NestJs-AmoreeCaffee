@@ -40,13 +40,10 @@ export class CabeceraPedidoService {
       if (!createCabeceraPedidoDto.mesa.estado) throw new BadRequestException(`Mesa with 'id' ${createCabeceraPedidoDto.mesa.id} inactive`);
     }
 
-    try {
-      const cab = this.cabeceraPedidoRepository.create(createCabeceraPedidoDto);
-      return await this.cabeceraPedidoRepository.save(cab);
+    const cab = this.cabeceraPedidoRepository.create(createCabeceraPedidoDto);
+    return await this.cabeceraPedidoRepository.save(cab);
 
-    } catch (error) {
-      this.handleException(error);
-    }
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -85,32 +82,20 @@ export class CabeceraPedidoService {
       const table = await this.mesaService.findOne(!mesa.id ? '' : mesa.id);
       if (!table.estado) throw new BadRequestException(`Mesa with 'id' ${mesa.id} inactive`);
     }
-    try {
-      await this.cabeceraPedidoRepository.update({ id }, {
-        ...updateCabeceraPedidoDto
-      })
-      return { ...cab, ...updateCabeceraPedidoDto };
-    } catch (error) {
-      this.handleException(error);
-    }
+    await this.cabeceraPedidoRepository.update({ id }, {
+      ...updateCabeceraPedidoDto
+    })
+    return { ...cab, ...updateCabeceraPedidoDto };
+
   }
 
   async remove(id: string) {
     await this.findOne(id);
     const detPedido = await this.detallePedidoService.findDetallePedidoActive(id);
-    if (detPedido) throw new InternalServerErrorException(`CabeceraPedido with id ${id} cannot be deleted because it is in use.`)
+    if (detPedido) throw new BadRequestException(`CabeceraPedido with id ${id} cannot be deleted because it is in use.`)
     await this.cabeceraPedidoRepository.update({ id }, { estado: false });
     return { message: `CabeceraPedido with id ${id} deleted successfully` };
 
-  }
-
-  private handleException(error: any) {
-
-    if (error.code === '23505')
-      throw new BadRequestException(error.detail);
-
-    this.logger.error(error)
-    throw new InternalServerErrorException('Unexpected error, check server logs');
   }
 
 

@@ -10,7 +10,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    console.log('exception Http')
     const status = exception.getStatus ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
     const message = exception.getResponse()['message']
     const error = exception.getResponse()['error']

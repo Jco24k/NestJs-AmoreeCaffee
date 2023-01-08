@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductosModule } from 'src/productos/productos.module';
 import { CabeceraPedidoModule } from 'src/cabecera-pedido/cabecera-pedido.module';
 import { ConfigModule } from '@nestjs/config';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [DetallePedidoController],
@@ -15,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
     TypeOrmModule.forFeature([ DetallePedido]),
     forwardRef(() => CabeceraPedidoModule),
     forwardRef(() => ProductosModule),
+    forwardRef(()=> AuthModule)
 
   ],
   exports: [
