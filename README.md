@@ -3,7 +3,7 @@
 </p>
 
 
-# Teslo API
+# Amore Caffe
 
 1. Clonar proyecto
 2. ```npm install```
